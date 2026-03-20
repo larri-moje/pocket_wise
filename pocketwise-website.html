@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PocketWise — Smart Budgeting for Students</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --ink:#0f0e0b; --ink2:#5a5040; --bg:#f7f2e8; --surface:#fff; --border:#e8e0d0;
+  --green:#2d6a4f; --green-light:#d8f3dc; --gold:#f4a261; --gold-dark:#e07a2f;
+  --cream:#fdf8f0; --font:'Plus Jakarta Sans',sans-serif;
+  --serif:'Instrument Serif',serif; --mono:'Space Mono',monospace;
+}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);overflow-x:hidden;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:20px 60px;background:rgba(247,242,232,0.88);backdrop-filter:blur(14px);border-bottom:1px solid transparent;transition:all 0.3s;}
+nav.scrolled{border-color:var(--border);padding:14px 60px;}
+.nav-logo{font-family:var(--mono);font-size:1.2rem;font-weight:700;color:var(--ink);text-decoration:none;}
+.nav-logo span{color:var(--green);}
+.nav-links{display:flex;align-items:center;gap:36px;}
+.nav-link{font-size:0.88rem;font-weight:600;color:var(--ink2);text-decoration:none;transition:color 0.2s;}
+.nav-link:hover{color:var(--ink);}
+.nav-cta{padding:10px 22px;background:var(--ink);color:#fff;border-radius:100px;font-size:0.88rem;font-weight:700;text-decoration:none;transition:background 0.2s,transform 0.15s;}
+.nav-cta:hover{background:var(--green);transform:translateY(-1px);}
+
+/* HERO */
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:130px 60px 80px;text-align:center;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;width:700px;height:700px;border-radius:50%;background:radial-gradient(circle,rgba(45,106,79,0.07),transparent 70%);top:-200px;right:-200px;pointer-events:none;}
+.hero::after{content:'';position:absolute;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(244,162,97,0.09),transparent 70%);bottom:-100px;left:-150px;pointer-events:none;}
+
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:var(--green-light);border:1px solid rgba(45,106,79,0.2);border-radius:100px;padding:6px 16px;font-size:0.78rem;font-weight:700;color:var(--green);margin-bottom:28px;animation:fadeUp 0.6s ease both;}
+.badge-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.4}}
+
+.hero-title{font-family:var(--serif);font-size:clamp(3rem,7.5vw,6.2rem);font-weight:400;line-height:1.05;letter-spacing:-1px;margin-bottom:24px;animation:fadeUp 0.6s 0.1s ease both;}
+.hero-title em{font-style:italic;color:var(--green);}
+.hero-sub{font-size:clamp(1rem,1.8vw,1.15rem);color:var(--ink2);max-width:500px;line-height:1.7;margin:0 auto 44px;animation:fadeUp 0.6s 0.2s ease both;}
+.hero-btns{display:flex;align-items:center;gap:14px;justify-content:center;flex-wrap:wrap;animation:fadeUp 0.6s 0.3s ease both;}
+
+.btn-primary{display:inline-flex;align-items:center;gap:10px;padding:16px 32px;background:var(--ink);color:#fff;border-radius:100px;font-size:1rem;font-weight:700;text-decoration:none;transition:all 0.2s;box-shadow:0 4px 20px rgba(0,0,0,0.14);}
+.btn-primary:hover{background:var(--green);transform:translateY(-2px);box-shadow:0 8px 32px rgba(45,106,79,0.25);}
+.btn-secondary{display:inline-flex;align-items:center;gap:8px;padding:16px 28px;background:transparent;color:var(--ink);border:1.5px solid var(--border);border-radius:100px;font-size:1rem;font-weight:600;text-decoration:none;transition:all 0.2s;}
+.btn-secondary:hover{border-color:var(--ink);background:var(--surface);transform:translateY(-2px);}
+
+.hero-trust{margin-top:52px;font-size:0.78rem;color:var(--ink2);display:flex;align-items:center;gap:14px;justify-content:center;flex-wrap:wrap;animation:fadeUp 0.6s 0.4s ease both;}
+.trust-sep{opacity:0.3;}
+
+/* PHONE */
+.phone-wrap{margin-top:64px;position:relative;display:inline-block;animation:fadeUp 0.7s 0.5s ease both;}
+.phone-shell{width:270px;background:#111;border-radius:44px;padding:12px;box-shadow:0 40px 80px rgba(0,0,0,0.28),0 0 0 1px rgba(255,255,255,0.06);}
+.phone-notch{width:90px;height:26px;background:#111;border-radius:0 0 18px 18px;position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:2;}
+.phone-screen{background:var(--bg);border-radius:34px;overflow:hidden;height:510px;position:relative;}
+.phone-status{display:flex;justify-content:space-between;padding:16px 20px 8px;font-size:0.62rem;font-weight:700;color:var(--ink2);font-family:var(--mono);}
+.phone-hero-card{background:#0f0e0b;margin:0 12px;border-radius:20px;padding:18px;position:relative;overflow:hidden;}
+.phone-hero-card::before{content:'';position:absolute;width:130px;height:130px;border-radius:50%;background:radial-gradient(circle,rgba(45,106,79,0.45),transparent 70%);top:-40px;right:-30px;}
+.phc-label{font-size:0.58rem;font-weight:700;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
+.phc-amount{font-family:var(--mono);font-size:1.9rem;font-weight:700;color:#fff;line-height:1;}
+.phc-sub{font-size:0.62rem;color:rgba(255,255,255,0.38);margin-top:4px;}
+.phc-bar{margin-top:12px;height:5px;background:rgba(255,255,255,0.08);border-radius:3px;overflow:hidden;}
+.phc-fill{height:100%;width:62%;background:var(--gold);border-radius:3px;}
+.phone-envelopes{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:8px 12px;}
+.pe-card{background:#fff;border-radius:12px;padding:10px;}
+.pe-emoji{font-size:1rem;margin-bottom:4px;}
+.pe-name{font-size:0.58rem;font-weight:700;color:var(--ink2);}
+.pe-left{font-family:var(--mono);font-size:0.8rem;font-weight:700;color:var(--ink);}
+.pe-bar{height:3px;background:#f0ebe0;border-radius:2px;margin-top:5px;overflow:hidden;}
+.pe-fill{height:100%;border-radius:2px;}
+.phone-fab{margin:6px 12px 0;background:#0f0e0b;border-radius:10px;padding:11px;text-align:center;font-size:0.72rem;font-weight:700;color:#fff;}
+.phone-reflection{position:absolute;top:0;left:0;right:0;height:50%;background:linear-gradient(to bottom,rgba(255,255,255,0.03),transparent);border-radius:44px 44px 0 0;pointer-events:none;}
+
+.phone-badge{position:absolute;background:var(--surface);border-radius:14px;padding:9px 14px;box-shadow:0 8px 24px rgba(0,0,0,0.1);display:flex;align-items:center;gap:8px;font-size:0.78rem;font-weight:700;white-space:nowrap;}
+.phone-badge.b1{left:-110px;top:110px;animation:float 4s ease-in-out infinite;}
+.phone-badge.b2{right:-100px;top:200px;animation:float 4s 1.5s ease-in-out infinite;}
+.phone-badge.b3{left:-90px;bottom:150px;animation:float 4s 0.8s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+
+/* SECTIONS */
+section{padding:100px 60px;}
+.section-label{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--green);margin-bottom:14px;}
+.section-title{font-family:var(--serif);font-size:clamp(2rem,4vw,3.2rem);line-height:1.15;margin-bottom:18px;}
+.section-title em{font-style:italic;color:var(--green);}
+.section-sub{font-size:1rem;color:var(--ink2);line-height:1.7;max-width:520px;}
+
+/* HOW IT WORKS */
+.how-wrap{max-width:1100px;margin:0 auto;}
+.how-header{text-align:center;margin-bottom:70px;}
+.how-header .section-sub{margin:0 auto;}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;}
+.step{padding:36px 30px;border-radius:28px;background:var(--surface);border:1px solid var(--border);position:relative;overflow:hidden;transition:transform 0.2s,box-shadow 0.2s;}
+.step:hover{transform:translateY(-4px);box-shadow:0 16px 48px rgba(0,0,0,0.07);}
+.step::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.step:nth-child(1)::before{background:var(--green);}
+.step:nth-child(2)::before{background:var(--gold);}
+.step:nth-child(3)::before{background:#219ebc;}
+.step-num{font-family:var(--mono);font-size:2.8rem;font-weight:700;color:var(--border);line-height:1;margin-bottom:14px;}
+.step-icon{font-size:1.8rem;margin-bottom:12px;}
+.step-title{font-size:1.05rem;font-weight:800;margin-bottom:10px;}
+.step-body{font-size:0.87rem;color:var(--ink2);line-height:1.6;}
+
+/* ENVELOPE BAND */
+.envelope-band{background:var(--ink);color:#fff;border-radius:36px;margin:0 40px;padding:80px 60px;}
+.env-demo-wrap{max-width:1000px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;}
+.env-demo-text .section-label{color:var(--gold);}
+.env-demo-text .section-title{color:#fff;}
+.env-demo-text .section-sub{color:rgba(255,255,255,0.5);}
+.env-grid-demo{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.edc{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:18px;padding:18px;}
+.edc-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.edc-emoji{font-size:1.3rem;}
+.edc-badge{font-size:0.62rem;font-weight:700;padding:3px 8px;border-radius:20px;}
+.edc-badge.ok{background:rgba(45,106,79,0.3);color:#a3e4b5;}
+.edc-badge.low{background:rgba(244,162,97,0.3);color:#fcd5ae;}
+.edc-badge.empty{background:rgba(255,107,107,0.3);color:#ffc2c2;}
+.edc-name{font-size:0.72rem;font-weight:700;color:rgba(255,255,255,0.45);margin-bottom:4px;}
+.edc-left{font-family:var(--mono);font-size:1.1rem;font-weight:700;color:#fff;}
+.edc-bar{height:4px;background:rgba(255,255,255,0.08);border-radius:2px;margin-top:10px;overflow:hidden;}
+.edc-fill{height:100%;border-radius:2px;}
+
+/* FEATURES */
+.features-wrap{max-width:1100px;margin:0 auto;}
+.features-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:56px;}
+.feat{padding:30px;border-radius:24px;border:1px solid var(--border);background:var(--surface);transition:transform 0.2s;}
+.feat:hover{transform:translateY(-3px);}
+.feat.span2{grid-column:1/3;}
+.feat.dark{background:var(--ink);border-color:transparent;color:#fff;}
+.feat.dark .feat-body{color:rgba(255,255,255,0.5);}
+.feat.forest{background:var(--green);border-color:transparent;color:#fff;}
+.feat.forest .feat-body{color:rgba(255,255,255,0.6);}
+.feat-icon{font-size:1.8rem;margin-bottom:14px;}
+.feat-title{font-size:1rem;font-weight:800;margin-bottom:8px;}
+.feat-body{font-size:0.87rem;color:var(--ink2);line-height:1.6;}
+.feat-pill{display:inline-block;background:rgba(255,255,255,0.12);border-radius:20px;padding:4px 12px;font-size:0.7rem;font-weight:700;margin-top:14px;}
+
+/* SAVINGS */
+.savings-section{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;}
+.savings-visual{background:linear-gradient(135deg,#0f0e0b 0%,#1a3a25 100%);border-radius:28px;padding:36px;position:relative;overflow:hidden;}
+.savings-visual::before{content:'';position:absolute;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(244,162,97,0.12),transparent 70%);top:-80px;right:-60px;}
+.sv-label{font-size:0.68rem;font-weight:700;color:rgba(255,255,255,0.38);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.sv-goal-name{font-size:0.95rem;font-weight:700;color:var(--gold);margin-bottom:18px;}
+.sv-row{display:flex;align-items:flex-end;gap:8px;margin-bottom:12px;}
+.sv-saved{font-family:var(--mono);font-size:2.2rem;font-weight:700;color:#fff;line-height:1;}
+.sv-of{font-size:0.82rem;color:rgba(255,255,255,0.3);padding-bottom:5px;}
+.sv-target{font-family:var(--mono);font-size:1.1rem;font-weight:700;color:var(--gold);}
+.sv-bar{height:9px;background:rgba(255,255,255,0.07);border-radius:5px;overflow:hidden;margin-bottom:14px;}
+.sv-fill{height:100%;width:68%;background:linear-gradient(90deg,var(--gold),#f9c46b);border-radius:5px;}
+.sv-meta{display:flex;justify-content:space-between;}
+.sv-meta-item{font-size:0.7rem;color:rgba(255,255,255,0.35);}
+.sv-meta-item strong{color:rgba(255,255,255,0.7);display:block;font-size:0.85rem;}
+
+/* LITERACY */
+.lit-section{background:var(--cream);}
+.lit-wrap{max-width:1100px;margin:0 auto;}
+.lit-hrow{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:50px;flex-wrap:wrap;gap:20px;}
+.lit-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+.lit-card{background:var(--surface);border-radius:20px;padding:26px;border:1px solid var(--border);transition:transform 0.2s,box-shadow 0.2s;}
+.lit-card:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,0.07);}
+.lc-emoji{font-size:1.7rem;margin-bottom:12px;}
+.lc-title{font-size:0.92rem;font-weight:800;margin-bottom:8px;}
+.lc-body{font-size:0.8rem;color:var(--ink2);line-height:1.6;}
+.lc-tag{display:inline-block;margin-top:12px;font-size:0.68rem;font-weight:700;color:var(--green);background:var(--green-light);padding:3px 10px;border-radius:20px;}
+.lit-card.dark-card{background:var(--ink);border-color:transparent;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:10px;}
+.lit-card.dark-card .lc-body{color:rgba(255,255,255,0.4);}
+.lit-card.dark-card .lc-title{color:#fff;}
+
+/* DOWNLOAD */
+.download-band{background:var(--ink);color:#fff;border-radius:36px;margin:0 40px 80px;padding:90px 60px;text-align:center;position:relative;overflow:hidden;}
+.download-band::before{content:'';position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(45,106,79,0.2),transparent 70%);top:-200px;right:-200px;}
+.download-band::after{content:'';position:absolute;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(244,162,97,0.1),transparent 70%);bottom:-100px;left:-100px;}
+.dl-label{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--gold);margin-bottom:14px;position:relative;z-index:1;}
+.dl-title{font-family:var(--serif);font-size:clamp(2.2rem,5vw,4.2rem);color:#fff;line-height:1.1;margin-bottom:16px;position:relative;z-index:1;}
+.dl-title em{font-style:italic;color:var(--gold);}
+.dl-sub{font-size:1rem;color:rgba(255,255,255,0.45);max-width:460px;margin:0 auto 44px;line-height:1.7;position:relative;z-index:1;}
+.dl-btns{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;position:relative;z-index:1;}
+.dl-btn{display:inline-flex;align-items:center;gap:12px;padding:16px 28px;border-radius:18px;font-weight:700;text-decoration:none;transition:all 0.2s;cursor:pointer;border:none;font-family:var(--font);font-size:1rem;}
+.dl-btn:hover{transform:translateY(-3px);}
+.dl-btn-gold{background:var(--gold);color:var(--ink);box-shadow:0 4px 20px rgba(244,162,97,0.3);}
+.dl-btn-gold:hover{box-shadow:0 8px 32px rgba(244,162,97,0.45);}
+.dl-btn-ghost{background:rgba(255,255,255,0.07);color:#fff;border:1px solid rgba(255,255,255,0.14);}
+.dl-btn-ghost:hover{background:rgba(255,255,255,0.13);}
+.dl-btn-inner{text-align:left;}
+.dl-btn-inner small{display:block;font-size:0.68rem;font-weight:500;opacity:0.65;}
+.dl-btn-inner strong{display:block;font-size:0.95rem;}
+.dl-note{margin-top:28px;font-size:0.72rem;color:rgba(255,255,255,0.25);position:relative;z-index:1;}
+
+/* FOOTER */
+footer{padding:44px 60px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;border-top:1px solid var(--border);}
+.footer-logo{font-family:var(--mono);font-size:1rem;font-weight:700;}
+.footer-logo span{color:var(--green);}
+.footer-links{display:flex;gap:28px;flex-wrap:wrap;}
+.footer-link{font-size:0.82rem;color:var(--ink2);text-decoration:none;transition:color 0.2s;}
+.footer-link:hover{color:var(--ink);}
+.footer-copy{font-size:0.76rem;color:var(--ink2);}
+
+/* REVEAL */
+.reveal{opacity:0;transform:translateY(28px);transition:opacity 0.65s ease,transform 0.65s ease;}
+.reveal.visible{opacity:1;transform:none;}
+.delay1{transition-delay:0.1s;}.delay2{transition-delay:0.2s;}.delay3{transition-delay:0.3s;}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  nav{padding:16px 24px;}nav.scrolled{padding:12px 24px;}
+  .nav-links{display:none;}
+  .hero{padding:100px 24px 60px;}
+  section{padding:64px 24px;}
+  .steps{grid-template-columns:1fr;}
+  .features-grid{grid-template-columns:1fr;}
+  .feat.span2{grid-column:1;}
+  .envelope-band,.download-band{margin:0 16px;padding:52px 26px;border-radius:24px;}
+  .env-demo-wrap,.savings-section{grid-template-columns:1fr;}
+  .lit-grid{grid-template-columns:1fr 1fr;}
+  footer{padding:32px 24px;flex-direction:column;align-items:flex-start;}
+  .phone-badge{display:none;}
+}
+@media(max-width:560px){
+  .lit-grid{grid-template-columns:1fr;}
+  .hero-title{font-size:2.5rem;}
+  .phone-shell{width:230px;}.phone-screen{height:440px;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="#" class="nav-logo">Pocket<span>Wise</span></a>
+  <div class="nav-links" id="navLinks">
+    <a href="#how" class="nav-link">How it works</a>
+    <a href="#features" class="nav-link">Features</a>
+    <a href="#learn" class="nav-link">Learn</a>
+    <a href="student-budget-app.html" class="nav-cta">Open App →</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge"><div class="badge-dot"></div>Built for Botswana students 🇧🇼</div>
+  <h1 class="hero-title">Your money,<br><em>finally making sense.</em></h1>
+  <p class="hero-sub">PocketWise is the proactive budgeting app for university students. Know exactly what you have left — before you overspend, not after.</p>
+  <div class="hero-btns">
+    <a href="#download" class="btn-primary">⬇️ &nbsp;Download Free App</a>
+    <a href="student-budget-app.html" class="btn-secondary">🌐 &nbsp;Open in Browser</a>
+  </div>
+  <div class="hero-trust">
+    <span>✅ Free forever</span><span class="trust-sep">|</span>
+    <span>✅ No ads</span><span class="trust-sep">|</span>
+    <span>✅ Works offline</span><span class="trust-sep">|</span>
+    <span>✅ No bank needed</span>
+  </div>
+
+  <!-- Phone mockup -->
+  <div class="phone-wrap">
+    <div class="phone-shell">
+      <div class="phone-notch"></div>
+      <div class="phone-reflection"></div>
+      <div class="phone-screen">
+        <div class="phone-status"><span>9:41</span><span>●●●</span></div>
+        <div class="phone-hero-card">
+          <div class="phc-label">LEFT TO SPEND</div>
+          <div class="phc-amount">P1,240</div>
+          <div class="phc-sub">of P2,500 · 12 days left</div>
+          <div class="phc-bar"><div class="phc-fill"></div></div>
+        </div>
+        <div class="phone-envelopes">
+          <div class="pe-card"><div class="pe-emoji">🍽️</div><div class="pe-name">Food</div><div class="pe-left">P340</div><div class="pe-bar"><div class="pe-fill" style="width:54%;background:#e76f51"></div></div></div>
+          <div class="pe-card"><div class="pe-emoji">📱</div><div class="pe-name">Data</div><div class="pe-left">P30</div><div class="pe-bar"><div class="pe-fill" style="width:88%;background:#f4a261"></div></div></div>
+          <div class="pe-card"><div class="pe-emoji">🚌</div><div class="pe-name">Transport</div><div class="pe-left">P210</div><div class="pe-bar"><div class="pe-fill" style="width:42%;background:#2d6a4f"></div></div></div>
+          <div class="pe-card"><div class="pe-emoji">🎉</div><div class="pe-name">Social</div><div class="pe-left">P0</div><div class="pe-bar"><div class="pe-fill" style="width:100%;background:#e63946"></div></div></div>
+        </div>
+        <div class="phone-fab">+ Log Expense</div>
+      </div>
+    </div>
+    <div class="phone-badge b1">✅ On track today!</div>
+    <div class="phone-badge b2">🎯 68% to goal</div>
+    <div class="phone-badge b3">⚠️ Data almost empty</div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="how-wrap">
+    <div class="how-header reveal">
+      <div class="section-label">How it works</div>
+      <h2 class="section-title">Budget in <em>3 taps,</em> not 30 minutes.</h2>
+      <p class="section-sub">Designed for students who want results, not complexity.</p>
+    </div>
+    <div class="steps">
+      <div class="step reveal delay1">
+        <div class="step-num">01</div>
+        <div class="step-icon">💸</div>
+        <div class="step-title">Enter your allowance once</div>
+        <div class="step-body">Sign up and enter your monthly allowance. PocketWise splits it into smart envelopes — food, data, transport, study, social, and more. Ready in under a minute.</div>
+      </div>
+      <div class="step reveal delay2">
+        <div class="step-num">02</div>
+        <div class="step-icon">⚡</div>
+        <div class="step-title">Log expenses in 3 taps</div>
+        <div class="step-body">Pick a category → enter the amount → confirm. Type "KFC" or "Mascom data" and PocketWise auto-categorizes it. No forms. No friction.</div>
+      </div>
+      <div class="step reveal delay3">
+        <div class="step-num">03</div>
+        <div class="step-icon">🔔</div>
+        <div class="step-title">Get warned before you overspend</div>
+        <div class="step-body">PocketWise shows what you have LEFT and warns you when an envelope is running low — before it's empty, not after you've already spent it.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ENVELOPE BAND -->
+<div class="envelope-band reveal">
+  <div class="env-demo-wrap">
+    <div class="env-demo-text">
+      <div class="section-label">Digital Envelope Budgeting</div>
+      <h2 class="section-title">Your allowance, <em style="color:var(--gold)">divided and conquered.</em></h2>
+      <p class="section-sub">The envelope method is the oldest budgeting trick in the book. You divide your cash into labelled envelopes — when one's empty, stop spending there. PocketWise makes it digital and instant.</p>
+    </div>
+    <div class="env-grid-demo">
+      <div class="edc"><div class="edc-top"><div class="edc-emoji">🍽️</div><div class="edc-badge ok">OK</div></div><div class="edc-name">Food</div><div class="edc-left">P340 left</div><div class="edc-bar"><div class="edc-fill" style="width:54%;background:#e76f51;opacity:0.85"></div></div></div>
+      <div class="edc"><div class="edc-top"><div class="edc-emoji">📱</div><div class="edc-badge low">Low</div></div><div class="edc-name">Data</div><div class="edc-left">P30 left</div><div class="edc-bar"><div class="edc-fill" style="width:88%;background:#f4a261;opacity:0.85"></div></div></div>
+      <div class="edc"><div class="edc-top"><div class="edc-emoji">🚌</div><div class="edc-badge ok">OK</div></div><div class="edc-name">Transport</div><div class="edc-left">P210 left</div><div class="edc-bar"><div class="edc-fill" style="width:42%;background:#2d6a4f;opacity:0.85"></div></div></div>
+      <div class="edc"><div class="edc-top"><div class="edc-emoji">🎉</div><div class="edc-badge empty">Empty</div></div><div class="edc-name">Social</div><div class="edc-left">P0 left</div><div class="edc-bar"><div class="edc-fill" style="width:100%;background:#ff6b6b;opacity:0.85"></div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="features-wrap">
+    <div class="reveal">
+      <div class="section-label">Features</div>
+      <h2 class="section-title">Everything a student needs.<br><em>Nothing they don't.</em></h2>
+    </div>
+    <div class="features-grid">
+      <div class="feat dark reveal delay1">
+        <div class="feat-icon">👁️</div>
+        <div class="feat-title">Proactive, not reactive</div>
+        <div class="feat-body">Shows what you have LEFT — not what you've spent. Daily spend limit. Envelope warnings. Payday countdown. All on one screen.</div>
+        <div class="feat-pill">Left to Spend view</div>
+      </div>
+      <div class="feat forest reveal delay2">
+        <div class="feat-icon">🎯</div>
+        <div class="feat-title">Savings Challenge</div>
+        <div class="feat-body">Name your goal — a laptop, textbooks, a trip. Set a target. Watch it grow with a visual progress bar and an estimated completion date.</div>
+        <div class="feat-pill">Goal tracking built in</div>
+      </div>
+      <div class="feat reveal delay1">
+        <div class="feat-icon">✨</div>
+        <div class="feat-title">Auto-categorization</div>
+        <div class="feat-body">Type "KFC" or "Mascom bundle" and the right envelope gets updated automatically. No manual sorting, ever.</div>
+      </div>
+      <div class="feat reveal delay2">
+        <div class="feat-icon">📅</div>
+        <div class="feat-title">Pay day countdown</div>
+        <div class="feat-body">Always know how many days until your next allowance and how much you can safely spend per day without running out.</div>
+      </div>
+      <div class="feat span2 reveal">
+        <div class="feat-icon">🔒</div>
+        <div class="feat-title">Private & offline-first — no bank account required</div>
+        <div class="feat-body">Your data lives on your device. No bank integration required. No subscriptions. No ads. Works on any phone, even without internet. Built equally for FNB card holders and cash-only allowances.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SAVINGS -->
+<section>
+  <div class="savings-section">
+    <div class="reveal">
+      <div class="section-label">Savings Challenge</div>
+      <h2 class="section-title">Stop saying <em>"I'll save what's left."</em></h2>
+      <p class="section-sub">There's never anything left. PocketWise sets your savings aside first — before you see it, before you can spend it. Name your goal, set a target, watch it grow.</p>
+      <br/><br/>
+      <a href="#download" class="btn-primary" style="display:inline-flex;">Start saving today →</a>
+    </div>
+    <div class="savings-visual reveal delay2">
+      <div class="sv-label">SAVINGS CHALLENGE</div>
+      <div class="sv-goal-name">🎯 New Laptop</div>
+      <div class="sv-row">
+        <div class="sv-saved">P3,400</div>
+        <div class="sv-of">saved of</div>
+        <div class="sv-target">P5,000</div>
+      </div>
+      <div class="sv-bar"><div class="sv-fill"></div></div>
+      <div class="sv-meta">
+        <div class="sv-meta-item"><strong>68%</strong>complete</div>
+        <div class="sv-meta-item"><strong>P1,600</strong>to go</div>
+        <div class="sv-meta-item"><strong>~2 months</strong>estimated</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LITERACY -->
+<section id="learn" class="lit-section">
+  <div class="lit-wrap">
+    <div class="lit-hrow">
+      <div class="reveal">
+        <div class="section-label">Financial Literacy</div>
+        <h2 class="section-title">Money lessons built for <em>orientation week.</em></h2>
+      </div>
+      <p class="section-sub reveal" style="max-width:300px">5 lessons. 2 minutes each. Built into the app for first-year students.</p>
+    </div>
+    <div class="lit-grid">
+      <div class="lit-card reveal"><div class="lc-emoji">💡</div><div class="lc-title">The Envelope Method</div><div class="lc-body">Divide your money into labelled categories. When a category is empty, stop spending there. Simple and powerful.</div><div class="lc-tag">Lesson 1</div></div>
+      <div class="lit-card reveal delay1"><div class="lc-emoji">📉</div><div class="lc-title">The 50/30/20 Rule</div><div class="lc-body">50% needs, 30% wants, 20% savings. Even saving 5–10% is a great start. P100/month = P1,200/year.</div><div class="lc-tag">Lesson 2</div></div>
+      <div class="lit-card reveal delay2"><div class="lc-emoji">🧠</div><div class="lc-title">Spending Triggers</div><div class="lc-body">Boredom, stress, peer pressure cause most overspending. Identify your triggers — that's 80% of the solution.</div><div class="lc-tag">Lesson 3</div></div>
+      <div class="lit-card reveal"><div class="lc-emoji">🎯</div><div class="lc-title">Why Goals Work</div><div class="lc-body">Vague saving never works. A specific named goal — "Freedom Fund: P3,000" — gives your brain a commitment to honour.</div><div class="lc-tag">Lesson 4</div></div>
+      <div class="lit-card reveal delay1"><div class="lc-emoji">📊</div><div class="lc-title">Proactive Budgeting</div><div class="lc-body">Check what you have LEFT before going to the mall, not after. That one habit change makes everything else easier.</div><div class="lc-tag">Lesson 5</div></div>
+      <div class="lit-card dark-card reveal delay2">
+        <div style="font-size:2.2rem">📱</div>
+        <div class="lc-title">All lessons inside the app</div>
+        <div class="lc-body">Open PocketWise and tap the Learn tab for the full interactive experience.</div>
+        <a href="student-budget-app.html" style="margin-top:10px;padding:10px 20px;background:var(--gold);color:var(--ink);border-radius:20px;font-weight:700;font-size:0.82rem;text-decoration:none;display:inline-block;">Open App →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DOWNLOAD -->
+<div class="download-band reveal" id="download">
+  <div class="dl-label">Get PocketWise — it's free</div>
+  <h2 class="dl-title">Your wallet will<br><em>thank you.</em></h2>
+  <p class="dl-sub">Download the app file and open it on any phone or browser. No installation. No account needed to try. Works offline.</p>
+  <div class="dl-btns">
+    <button class="dl-btn dl-btn-gold" onclick="downloadApp()">
+      <span style="font-size:1.4rem">⬇️</span>
+      <div class="dl-btn-inner"><small>Download for free</small><strong>PocketWise.html</strong></div>
+    </button>
+    <a href="student-budget-app.html" class="dl-btn dl-btn-ghost">
+      <span style="font-size:1.4rem">🌐</span>
+      <div class="dl-btn-inner"><small>No download needed</small><strong>Open in Browser</strong></div>
+    </a>
+  </div>
+  <div class="dl-note">Single HTML file · Works offline · Saves data on-device · No tracking · No ads · Free forever</div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Pocket<span>Wise</span></div>
+  <div class="footer-links">
+    <a href="#how" class="footer-link">How it works</a>
+    <a href="#features" class="footer-link">Features</a>
+    <a href="#learn" class="footer-link">Learn</a>
+    <a href="student-budget-app.html" class="footer-link">Open App</a>
+  </div>
+  <div class="footer-copy">© 2026 PocketWise · Built for students 🇧🇼</div>
+</footer>
+
+<script>
+window.addEventListener('scroll',()=>{
+  document.getElementById('nav').classList.toggle('scrolled',scrollY>40);
+});
+
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});
+},{threshold:0.1});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+
+function downloadApp(){
+  const a=document.createElement('a');
+  a.href='student-budget-app.html';
+  a.download='PocketWise.html';
+  a.click();
+}
+</script>
+</body>
+</html>
