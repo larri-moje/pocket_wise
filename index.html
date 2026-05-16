@@ -468,67 +468,6 @@ select option{background:var(--bg2);color:var(--text);}
 
 ::-webkit-scrollbar{width:4px;}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px;}
-
-/* ══ CARD LINKING ══ */
-.link-card-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;}
-@media(max-width:480px){.link-card-grid{grid-template-columns:1fr;}}
-.bank-opt{background:var(--bg3);border:2px solid var(--border);border-radius:14px;padding:14px 16px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:12px;position:relative;}
-.bank-opt:hover{border-color:var(--green);background:var(--green3);}
-.bank-opt.selected{border-color:var(--green);background:var(--green3);}
-.bank-opt.selected-orange{border-color:#ff6b00;background:rgba(255,107,0,.08);}
-.bank-opt.selected-myzaka{border-color:#e91e8c;background:rgba(233,30,140,.08);}
-.bank-opt.selected-smega{border-color:#00a8e0;background:rgba(0,168,224,.08);}
-.bank-opt.selected-stanbic{border-color:#0033a0;background:rgba(0,51,160,.08);}
-.bank-logo{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;font-weight:800;font-family:'Syne',sans-serif;}
-.bank-logo-fnb{background:linear-gradient(135deg,#1a5c3a,#2a7a4a);color:#fff;}
-.bank-logo-orange{background:linear-gradient(135deg,#ff6b00,#ff9500);color:#fff;font-size:14px;}
-.bank-logo-myzaka{background:linear-gradient(135deg,#e91e8c,#c2185b);color:#fff;font-size:13px;}
-.bank-logo-smega{background:linear-gradient(135deg,#00a8e0,#0077b6);color:#fff;font-size:13px;}
-.bank-logo-stanbic{background:linear-gradient(135deg,#0033a0,#0055cc);color:#fff;font-size:12px;}
-.bank-name{font-size:13px;font-weight:700;color:var(--text);}
-.bank-type{font-size:11px;color:var(--text2);margin-top:1px;}
-.bank-check{position:absolute;top:10px;right:10px;width:18px;height:18px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;opacity:0;transition:opacity .2s;}
-.bank-opt.selected .bank-check{opacity:1;}
-.bank-opt.selected-orange .bank-check{background:#ff6b00;opacity:1;}
-.bank-opt.selected-myzaka .bank-check{background:#e91e8c;opacity:1;}
-.bank-opt.selected-smega .bank-check{background:#00a8e0;opacity:1;}
-.bank-opt.selected-stanbic .bank-check{background:#0033a0;opacity:1;}
-
-/* Live card preview */
-.card-preview-wrap{perspective:1000px;margin-bottom:20px;}
-.card-preview{width:100%;max-width:360px;margin:0 auto;background:var(--debit);border-radius:18px;padding:20px;color:#fff;position:relative;overflow:hidden;box-shadow:0 12px 40px rgba(26,92,58,.35);transition:background .4s;}
-.card-preview::before{content:'';position:absolute;top:-30%;right:-10%;width:160px;height:160px;background:rgba(255,255,255,.07);border-radius:50%;}
-.card-preview::after{content:'';position:absolute;bottom:-40%;left:-5%;width:200px;height:200px;background:rgba(255,255,255,.04);border-radius:50%;}
-.card-preview.orange{background:linear-gradient(135deg,#c44b00 0%,#ff6b00 55%,#e85a00 100%);box-shadow:0 12px 40px rgba(255,107,0,.3);}
-.card-preview.myzaka{background:linear-gradient(135deg,#880e4f 0%,#e91e8c 55%,#ad1457 100%);box-shadow:0 12px 40px rgba(233,30,140,.3);}
-.card-preview.smega{background:linear-gradient(135deg,#005f8a 0%,#00a8e0 55%,#0077b6 100%);box-shadow:0 12px 40px rgba(0,168,224,.3);}
-.card-preview.stanbic{background:linear-gradient(135deg,#001f7a 0%,#0033a0 55%,#002080 100%);box-shadow:0 12px 40px rgba(0,51,160,.3);}
-.cp-chip{width:36px;height:26px;background:linear-gradient(135deg,#c8922a,#e8a830);border-radius:5px;margin-bottom:16px;}
-.cp-number{font-family:'Syne',sans-serif;font-size:16px;letter-spacing:3px;margin-bottom:12px;font-weight:600;opacity:.95;}
-.cp-row{display:flex;gap:20px;margin-bottom:10px;font-size:10px;text-transform:uppercase;opacity:.8;}
-.cp-lbl{font-size:8px;opacity:.65;margin-bottom:2px;}
-.cp-foot{display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid rgba(255,255,255,.2);}
-.cp-brand{font-family:'Syne',sans-serif;font-weight:800;font-size:14px;letter-spacing:.02em;}
-.cp-network{font-size:11px;opacity:.7;}
-
-/* OTP step */
-.otp-step{display:none;}
-.otp-step.show{display:block;}
-.otp-boxes{display:flex;gap:10px;justify-content:center;margin:16px 0;}
-.otp-box{width:48px;height:56px;border-radius:10px;border:2px solid var(--border);background:var(--bg3);font-size:22px;font-weight:700;text-align:center;color:var(--text);font-family:'Syne',sans-serif;transition:border-color .2s;outline:none;}
-.otp-box:focus{border-color:var(--green);box-shadow:0 0 0 3px var(--green3);}
-.status-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:99px;font-size:12px;font-weight:600;background:var(--bg3);border:1.5px solid var(--border);color:var(--text2);}
-.status-pill.linked{background:var(--teal3);border-color:rgba(42,181,160,.3);color:#1d9487;}
-.status-pill.linked-orange{background:rgba(255,107,0,.1);border-color:rgba(255,107,0,.3);color:#c44b00;}
-.status-pill.linked-myzaka{background:rgba(233,30,140,.1);border-color:rgba(233,30,140,.3);color:#880e4f;}
-.status-pill.linked-smega{background:rgba(0,168,224,.1);border-color:rgba(0,168,224,.3);color:#005f8a;}
-.status-pill.linked-stanbic{background:rgba(0,51,160,.1);border-color:rgba(0,51,160,.3);color:#001f7a;}
-
-/* No-card state */
-.no-card-state{text-align:center;padding:32px 20px;background:var(--bg3);border-radius:var(--r);border:2px dashed var(--border);margin-bottom:20px;}
-.no-card-icon{font-size:48px;margin-bottom:12px;}
-.no-card-title{font-family:'Syne',sans-serif;font-weight:700;font-size:16px;color:var(--green);margin-bottom:6px;}
-.no-card-sub{font-size:13px;color:var(--text2);margin-bottom:18px;line-height:1.6;}
 </style>
 </head>
 <body>
@@ -1207,6 +1146,7 @@ function toggleDark(){
   const dk=APP.theme==='dark';
   document.querySelectorAll('#dk-tb,#dk-main').forEach(b=>b.textContent=dk?'☀️':'🌙');
   const ds=document.getElementById('dk-settings'); if(ds) ds.classList.toggle('on',dk);
+  saveApp();
   toast(dk?'Dark mode on 🌙':'Light mode on ☀️');
 }
 
@@ -1267,6 +1207,46 @@ function markInvalid(id,msg){
   el.addEventListener('input',()=>{el.style.borderColor='';el.style.boxShadow='';},{once:true});
 }
 
+/* ══ APP PERSISTENCE ══ */
+function saveApp(){
+  try{
+    const snapshot={
+      tier:APP.tier,
+      theme:APP.theme,
+      user:APP.user,
+      card:APP.card,
+      payMethods:APP.payMethods,
+      categories:APP.categories,
+      transactions:APP.transactions,
+      motshelos:APP.motshelos,
+      features:APP.features,
+    };
+    localStorage.setItem('pw_app_state',JSON.stringify(snapshot));
+  }catch(e){}
+}
+function loadApp(){
+  try{
+    const raw=localStorage.getItem('pw_app_state');
+    if(!raw) return false;
+    const s=JSON.parse(raw);
+    if(s.tier) APP.tier=s.tier;
+    if(s.theme) APP.theme=s.theme;
+    if(s.user) Object.assign(APP.user,s.user);
+    if(s.card) Object.assign(APP.card,s.card);
+    if(s.payMethods) APP.payMethods=s.payMethods;
+    if(s.categories) APP.categories=s.categories;
+    if(s.transactions) APP.transactions=s.transactions;
+    if(s.motshelos) APP.motshelos=s.motshelos;
+    if(s.features){
+      // Merge feature on/off state but keep labels from code
+      Object.keys(APP.features).forEach(k=>{
+        if(s.features[k]!==undefined) APP.features[k].on=s.features[k].on;
+      });
+    }
+    return !!(s.user&&s.user.name&&s.user.name!=='');
+  }catch(e){return false;}
+}
+
 /* ══ SAVED ACCOUNTS (localStorage) ══ */
 function getSavedAccounts(){
   try { return JSON.parse(localStorage.getItem('pw_accounts')||'[]'); }
@@ -1319,6 +1299,7 @@ function quickSignIn(email,name,initials){
   APP.user.incomeType=APP.user.incomeType||'salary';
   APP.user.payday=APP.user.payday||'25';
   APP.tier=APP.tier||'free';
+  saveApp();
   initDash();
   showScreen('dash-screen');
   setTimeout(()=>toast('Welcome back, '+name+' 👋'),300);
@@ -1368,6 +1349,7 @@ function googleSignIn(){
 }
 function goToOnboard(){showScreen('onboard-screen');}
 function signOut(){
+  localStorage.removeItem('pw_app_state');
   APP.transactions=[];APP.categories=[];APP.motshelos=[];
   APP.user={name:'',initials:'',email:'',income:0,incomeType:'salary',payday:'25',profile:'general'};
   APP.tier='free';
@@ -1468,6 +1450,7 @@ function finishOnboard(){
   const txDate=document.getElementById('tx-date');
   if(txDate) txDate.value=today();
 
+  saveApp();
   initDash();
   showScreen('dash-screen');
   setTimeout(()=>toast('Welcome to PocketWise, '+APP.user.name+'! 🎉'),300);
@@ -1689,6 +1672,7 @@ function confirmUpgrade(){
   setTimeout(()=>{
     APP.tier='premium';
     Object.keys(APP.features).forEach(k=>APP.features[k].on=true);
+    saveApp();
     buildNav(); applyTier(); renderStats(); updatePlanPill(); updateTierBadges(); renderFeatureToggles();
     toast('🎉 Welcome to Premium ✦ — all features unlocked!',3500);
   },1200);
@@ -1698,6 +1682,7 @@ function confirmDowngrade(){
   closeMod('downgrade-modal');
   APP.tier='free';
   Object.entries(APP.features).forEach(([k,f])=>{if(f.premium) f.on=false;});
+  saveApp();
   buildNav(); applyTier(); renderStats(); updatePlanPill(); updateTierBadges(); renderFeatureToggles();
   toast('Switched to Free plan');
 }
@@ -1722,6 +1707,7 @@ function toggleFeat(k,btn){
   if(APP.features[k].premium&&APP.tier==='free'){toast('🔒 Upgrade to Premium to use this feature');return;}
   APP.features[k].on=!APP.features[k].on;
   btn.classList.toggle('on');
+  saveApp();
   applyTier(); renderStats();
   toast(APP.features[k].label+' '+(APP.features[k].on?'enabled ✓':'disabled'));
 }
@@ -1738,6 +1724,7 @@ function addCat(){
   APP.categories.push({name:nm,icon:APP.selEmoji,color:APP.selColor,limit:lim,spent:0});
   document.getElementById('cat-name-i').value='';
   document.getElementById('cat-lim-i').value='';
+  saveApp();
   renderCats();
   renderTxCatSelect();
   toast('"'+nm+'" added ✓');
@@ -1746,6 +1733,7 @@ function addCat(){
 function deleteCat(i){
   const nm=APP.categories[i].name;
   APP.categories.splice(i,1);
+  saveApp();
   renderCats();
   renderTxCatSelect();
   toast('"'+nm+'" removed');
@@ -1816,6 +1804,7 @@ function addTx(){
   closeMod('add-tx');
   document.getElementById('tx-desc').value='';
   document.getElementById('tx-amt').value='';
+  saveApp();
   renderTxList(); renderStats(); renderCats();
   renderTxCatSelect();
   toast('Transaction added ✓');
@@ -1922,6 +1911,7 @@ function createMotshelo(){
   APP.motshelos.push({name:nm,members:1,maxMembers:mem,contrib,pos,cycle,payout,icon:'👥',saved:contrib,payoutDate:payoutDateStr,code,isOwner:true});
   closeMod('new-motshelo');
   ['m-nm','m-mem','m-ctrib','m-pos','m-cycle'].forEach(id=>document.getElementById(id).value='');
+  saveApp();
 
   // Show invite modal
   lastInviteCode=code;
@@ -1964,6 +1954,7 @@ function joinMotshelo(){
   closeMod('new-motshelo');
   document.getElementById('m-join-code').value='';
   document.getElementById('m-join-pos').value='';
+  saveApp();
   renderMotshelos(); renderMostheloStats();
   toast('Joined "'+grp.name+'" successfully! 🎉');
 }
@@ -2055,6 +2046,7 @@ function doContrib(i){
   }
   const tx={id:Date.now(),desc:'Motshelo — '+APP.motshelos[i].name,amount:APP.motshelos[i].contrib,type:'expense',cat:'Motshelo',date:today()};
   APP.transactions.unshift(tx);
+  saveApp();
   renderMotshelos(); renderStats(); renderTxList();
   toast('P'+APP.motshelos[i].contrib+' contributed to '+APP.motshelos[i].name+' ✓');
 }
@@ -2069,6 +2061,7 @@ function deleteMotshelo(i){
     saveSharedGroups(groups);
   }
   APP.motshelos.splice(i,1);
+  saveApp();
   renderMotshelos();
   toast('"'+nm+'" removed');
 }
@@ -2102,6 +2095,7 @@ function saveLimits(){
   const atmRow=document.getElementById('atm-limit-label');
   if(atmRow&&atm>0) atmRow.textContent='Daily limit: '+fmt(atm);
   closeMod('limits-modal');
+  saveApp();
   toast('Spending limits saved ✓');
 }
 
@@ -2123,6 +2117,7 @@ function saveProfile(){
   if(!n){toast('Please enter your name');return;}
   APP.user.name=n; APP.user.email=e;
   APP.user.initials=n.split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);
+  saveApp();
   document.getElementById('dash-greet').textContent='Hey, '+n+' 👋';
   document.getElementById('dash-av').textContent=APP.user.initials;
   document.getElementById('card-nm').textContent=n;
@@ -2140,6 +2135,7 @@ function saveIncome(){
     APP.user.payday=pd.value;
     document.getElementById('dash-sub').textContent=getMonthLabel()+' · '+getDaysLeft()+' days left · Payday: '+APP.user.payday+'th';
   }
+  saveApp();
   renderStats();
   toast('Income & payday updated ✓');
 }
@@ -2152,6 +2148,19 @@ document.getElementById('tx-date').value=today();
 renderObFeatures();
 // Load saved accounts on startup
 renderSavedAccounts();
+// Restore persisted session if it exists
+(function(){
+  const restored=loadApp();
+  if(restored){
+    // Apply saved theme
+    if(APP.theme==='dark'){
+      document.documentElement.setAttribute('data-theme','dark');
+      document.querySelectorAll('#dk-tb,#dk-main').forEach(b=>b.textContent='☀️');
+    }
+    initDash();
+    showScreen('dash-screen');
+  }
+})();
 </script>
 </body>
 </html>
