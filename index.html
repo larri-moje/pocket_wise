@@ -1,21 +1,2136 @@
-function buildBnav() {
-  const bn = document.getElementById('bnav');
-  bn.innerHTML = '';
-  bnavDefs.forEach((item, i) => {
-    const navDef = navDefs.find(n => n.id === item.id);
-    const locked = navDef?.premium && APP.tier !== 'premium';
-    const div = document.createElement('div');
-    div.className = 'bnav-item' + (i === 0 ? ' active' : '');
-    div.innerHTML = `<div class="bnav-icon">${item.icon}</div><div class="bnav-lbl">${item.label}</div>`;
-    div.onclick = () => {
-      if (locked) {
-        toast('🔒 Requires Premium — upgrade in Plan & Features');
-        return;
-      }
-      document.querySelectorAll('.bnav-item').forEach(b => b.classList.remove('active'));
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PocketWise · Botswana</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<style>
+[data-theme="light"]{
+  --bg:#f7f9f7;--bg2:#ffffff;--bg3:#f0f4f1;--bg4:#e8eee9;
+  --border:#d8e4da;--border2:#c4d6c8;
+  --text:#1a2e1f;--text2:#4a6b52;--text3:#8aaa90;
+  --shadow:0 1px 3px rgba(26,92,58,.08),0 4px 12px rgba(26,92,58,.06);
+  --debit:linear-gradient(135deg,#1a5c3a 0%,#2a7a4a 55%,#1a6a3a 100%);
+}
+[data-theme="dark"]{
+  --bg:#0d1410;--bg2:#141f17;--bg3:#1c2a1f;--bg4:#243328;
+  --border:#2a3d2e;--border2:#344d38;
+  --text:#e8f0ea;--text2:#7aaa82;--text3:#4a6b52;
+  --shadow:0 1px 3px rgba(0,0,0,.4),0 4px 16px rgba(0,0,0,.3);
+  --debit:linear-gradient(135deg,#0f3a22 0%,#1a5c3a 55%,#0d3020 100%);
+}
+:root{
+  --green:#1a5c3a;--green2:#22744a;--green3:rgba(26,92,58,.12);
+  --gold:#c8922a;--gold2:#e8a830;--gold3:rgba(200,146,42,.12);
+  --teal:#2ab5a0;--teal3:rgba(42,181,160,.12);
+  --red:#dc4c4c;--amber:#e8922a;
+  --r:14px;--rsm:10px;--sw:240px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background .25s,color .25s;}
+
+.screen{display:none;min-height:100vh;}
+.screen.active{display:flex;}
+
+
+/* Email validation state */
+input.invalid{border-color:var(--red)!important;box-shadow:0 0 0 3px rgba(220,76,76,.15);}
+input.valid-email{border-color:var(--teal)!important;}
+.field-hint{font-size:11px;margin-top:4px;display:none;}
+.field-hint.show{display:block;}
+.field-hint.err{color:var(--red);}
+.field-hint.ok{color:var(--teal);}
+
+/* TOAST */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--green);color:#fff;padding:11px 22px;border-radius:99px;font-size:13px;font-weight:500;opacity:0;pointer-events:none;transition:all .3s;z-index:9999;white-space:nowrap;box-shadow:0 4px 16px rgba(26,92,58,.3);}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* MODAL */
+.modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);}
+.modal-ov.show{display:flex;}
+.modal{background:var(--bg2);border-radius:20px;padding:28px;width:100%;max-width:460px;max-height:88vh;overflow-y:auto;border:1.5px solid var(--border);box-shadow:0 20px 60px rgba(0,0,0,.25);}
+.modal-hd{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;}
+.modal-title{font-family:'Syne',sans-serif;font-weight:700;font-size:17px;color:var(--green);}
+.modal-sub{font-size:12px;color:var(--text2);margin-top:2px;}
+.modal-close{background:var(--bg3);border:none;border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:15px;color:var(--text2);flex-shrink:0;}
+
+/* FORMS */
+.fg{margin-bottom:15px;}
+label{display:block;font-size:12px;color:var(--text2);margin-bottom:5px;font-weight:500;}
+input,select,textarea{width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--rsm);padding:11px 14px;font-size:14px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s;-webkit-appearance:none;appearance:none;}
+input:focus,select:focus{border-color:var(--green);}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%234a6b52' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px;}
+select option{background:var(--bg2);color:var(--text);}
+
+.btn{width:100%;background:var(--green);color:#fff;border:none;border-radius:var(--rsm);padding:13px;font-size:14px;font-weight:600;font-family:'Syne',sans-serif;cursor:pointer;transition:background .2s,transform .1s;}
+.btn:hover{background:var(--green2);}
+.btn:active{transform:scale(.98);}
+.btn-gold{background:var(--gold);}.btn-gold:hover{background:var(--gold2);}
+.btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--text2);font-family:'DM Sans',sans-serif;}.btn-outline:hover{background:var(--bg3);color:var(--text);}
+.btn-danger{background:var(--red);color:#fff;border:none;}.btn-danger:hover{background:#c83c3c;}
+.btn-sm{width:auto;padding:8px 16px;font-size:13px;}
+.btn-icon{background:none;border:1.5px solid var(--border);border-radius:8px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:var(--text2);transition:all .15s;}
+.btn-icon:hover{background:var(--bg3);}
+.btn-row{display:flex;gap:10px;}
+
+/* AUTH — mobile first: single column */
+#auth-screen{align-items:stretch;justify-content:flex-start;flex-direction:column;padding:0;background:var(--bg2);min-height:100vh;}
+.auth-left{flex:1;background:linear-gradient(160deg,#0f3a22 0%,#1a5c3a 45%,#0d4a2e 100%);display:none;flex-direction:column;justify-content:space-between;padding:48px;position:relative;overflow:hidden;}
+.auth-left::before{content:'';position:absolute;top:-100px;right:-100px;width:400px;height:400px;background:rgba(110,231,183,.07);border-radius:50%;pointer-events:none;}
+.auth-left::after{content:'';position:absolute;bottom:-80px;left:-60px;width:300px;height:300px;background:rgba(200,146,42,.06);border-radius:50%;pointer-events:none;}
+.auth-brand{display:flex;align-items:center;gap:12px;margin-bottom:auto;}
+.auth-brand-logo{width:44px;height:44px;object-fit:contain;border-radius:12px;}
+.auth-brand-name{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;color:#fff;letter-spacing:-.3px;}
+.auth-brand-name span{color:#6ee7b7;}
+.auth-hero{margin-top:auto;padding-top:60px;}
+.auth-hero-title{font-family:'Syne',sans-serif;font-weight:800;font-size:38px;color:#fff;line-height:1.15;letter-spacing:-.8px;margin-bottom:16px;}
+.auth-hero-title span{color:#6ee7b7;}
+.auth-hero-sub{font-size:16px;color:rgba(255,255,255,.65);line-height:1.65;max-width:340px;margin-bottom:40px;}
+.auth-features{display:flex;flex-direction:column;gap:14px;}
+.auth-feat{display:flex;align-items:center;gap:12px;font-size:14px;color:rgba(255,255,255,.8);}
+.auth-feat-icon{width:32px;height:32px;border-radius:8px;background:rgba(110,231,183,.15);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.auth-left-foot{margin-top:48px;font-size:12px;color:rgba(255,255,255,.35);}
+/* Mobile: right panel = full screen */
+.auth-right{width:100%;display:flex;flex-direction:column;justify-content:center;padding:48px 24px 32px;background:var(--bg2);overflow-y:auto;min-height:100vh;}
+.auth-form-header{margin-bottom:28px;}
+.auth-form-tag{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--green);margin-bottom:10px;}
+.auth-form-title{font-family:'Syne',sans-serif;font-weight:800;font-size:24px;color:var(--text);letter-spacing:-.5px;margin-bottom:6px;}
+.auth-form-sub{font-size:13px;color:var(--text2);line-height:1.6;}
+/* Add a small brand header on mobile since left panel is hidden */
+.auth-mobile-brand{display:flex;align-items:center;gap:10px;margin-bottom:32px;}
+.auth-mobile-brand-logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--green),var(--teal));display:flex;align-items:center;justify-content:center;font-size:18px;}
+.auth-mobile-brand-name{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;color:var(--green);}
+.auth-mobile-brand-name span{color:var(--gold);}
+.auth-remembered{background:var(--green3);border:1.5px solid rgba(26,92,58,.2);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:24px;cursor:pointer;transition:all .2s;}
+.auth-remembered:hover{border-color:var(--green);}
+.auth-rem-av{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--teal));display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0;}
+.auth-rem-name{font-size:14px;font-weight:600;color:var(--green);}
+.auth-rem-email{font-size:12px;color:var(--text2);margin-top:2px;}
+.auth-rem-arrow{margin-left:auto;color:var(--green);font-size:18px;}
+.auth-divider-row{display:flex;align-items:center;gap:12px;margin:20px 0;}
+.auth-divider-line{flex:1;height:1px;background:var(--border);}
+.auth-divider-text{font-size:12px;color:var(--text3);white-space:nowrap;}
+.auth-google-btn{width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:11px;padding:13px;font-size:14px;color:var(--text);font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .2s;font-weight:500;}
+.auth-google-btn:hover{background:var(--bg4);border-color:var(--border2);}
+.auth-footer-link{text-align:center;margin-top:28px;font-size:13px;color:var(--text2);}
+.auth-footer-link a{color:var(--green);cursor:pointer;font-weight:600;text-decoration:none;}
+.auth-footer-link a:hover{color:var(--green2);}
+.logo-name{font-family:'Syne',sans-serif;font-weight:800;font-size:26px;letter-spacing:-.5px;}
+.logo-p{color:var(--green);}.logo-w{color:var(--gold);}
+.logo-sub{font-size:13px;color:var(--text2);}
+
+/* Create account panel */
+.auth-create{display:none;flex-direction:column;gap:0;}
+.auth-create.visible{display:flex;}
+.auth-signin{display:flex;flex-direction:column;gap:0;}
+
+/* Saved accounts */
+.saved-accounts{display:flex;flex-direction:column;gap:8px;margin-bottom:0;}
+.saved-acct-card{display:flex;align-items:center;gap:13px;padding:13px 15px;background:var(--bg3);border:1.5px solid var(--border);border-radius:13px;cursor:pointer;transition:all .2s;position:relative;}
+.saved-acct-card:hover{border-color:var(--green);background:var(--green3);box-shadow:0 2px 12px rgba(26,92,58,.1);}
+.saved-acct-av{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--teal));display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0;letter-spacing:.02em;}
+.saved-acct-info{flex:1;min-width:0;}
+.saved-acct-name{font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.saved-acct-email{font-size:12px;color:var(--text2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.saved-acct-arrow{color:var(--green);font-size:20px;line-height:1;flex-shrink:0;}
+.saved-acct-del{position:absolute;top:8px;right:8px;background:none;border:none;font-size:11px;color:var(--text3);cursor:pointer;padding:2px 5px;border-radius:4px;opacity:0;transition:opacity .15s;}
+.saved-acct-card:hover .saved-acct-del{opacity:1;}
+.saved-acct-del:hover{color:var(--red)!important;}
+.saved-sect-title{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;}
+.or-divider{display:flex;align-items:center;gap:12px;margin:18px 0 16px;}
+.or-divider-line{flex:1;height:1px;background:var(--border);}
+.or-divider-text{font-size:11px;color:var(--text3);white-space:nowrap;font-weight:500;}
+
+/* Input polish */
+.input-wrap{position:relative;margin-bottom:4px;}
+.input-wrap input{padding-left:40px;}
+.input-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--text3);pointer-events:none;}
+.input-strength{height:3px;border-radius:99px;background:var(--bg4);margin-top:6px;overflow:hidden;transition:all .3s;}
+.input-strength-fill{height:100%;border-radius:99px;transition:width .4s ease,background .3s;}
+
+@media(max-width:900px){
+  #auth-screen{flex-direction:column;}
+  .auth-left{min-height:auto;padding:32px 24px 28px;}
+  .auth-hero-title{font-size:26px;}
+  .auth-hero{padding-top:24px;}
+  .auth-features{display:none;}
+  .auth-right{width:100%;padding:36px 24px;}
+  .auth-hero-sub{font-size:14px;}
+}
+@media(max-width:480px){
+  .auth-right{padding:28px 18px;}
+  .auth-form-title{font-size:22px;}
+}
+.auth-tabs{display:flex;background:var(--bg3);border-radius:10px;padding:4px;margin-bottom:22px;}
+.auth-tab{flex:1;text-align:center;padding:8px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;color:var(--text2);transition:all .2s;}
+.auth-tab.active{background:var(--bg2);color:var(--green);box-shadow:var(--shadow);}
+
+/* ONBOARDING */
+#onboard-screen{align-items:center;justify-content:center;flex-direction:column;padding:24px;background:linear-gradient(160deg,var(--green3),var(--bg2) 55%,var(--teal3));}
+.ob-card{background:var(--bg2);border-radius:24px;padding:36px 32px;width:100%;max-width:520px;box-shadow:0 8px 40px rgba(26,92,58,.12);border:1.5px solid var(--border);}
+.ob-step{display:none;}
+.ob-step.active{display:block;animation:fadeUp .3s ease both;}
+.step-bar{display:flex;gap:6px;margin-bottom:26px;}
+.sdot{height:4px;border-radius:99px;background:var(--bg4);flex:1;transition:background .3s;}
+.sdot.done{background:var(--green);}
+.ob-emoji{font-size:34px;margin-bottom:10px;}
+.ob-title{font-family:'Syne',sans-serif;font-weight:700;font-size:20px;color:var(--green);margin-bottom:6px;letter-spacing:-.3px;}
+.ob-sub{font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.6;}
+.opt-grid{display:grid;gap:10px;margin-bottom:18px;}
+.c2{grid-template-columns:1fr 1fr;}.c3{grid-template-columns:1fr 1fr 1fr;}
+.opt-card{background:var(--bg3);border:2px solid var(--border);border-radius:var(--r);padding:16px 12px;cursor:pointer;text-align:center;transition:all .2s;}
+.opt-card:hover,.opt-card.sel{border-color:var(--green);background:var(--green3);}
+.opt-card.sel-gold{border-color:var(--gold);background:var(--gold3);}
+.opt-icon{font-size:24px;margin-bottom:8px;}
+.opt-label{font-size:13px;font-weight:600;}
+.opt-sub{font-size:11px;color:var(--text2);margin-top:3px;}
+.pay-card{background:var(--bg3);border:2px solid var(--border);border-radius:var(--r);padding:12px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:10px;}
+.pay-card:hover,.pay-card.sel{border-color:var(--green);background:var(--green3);}
+.pay-logo{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.ob-nav{display:flex;gap:10px;margin-top:6px;}
+.btn-back{background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--rsm);padding:12px 20px;font-size:14px;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;}
+.btn-back:hover{background:var(--bg4);}
+.btn-next{flex:1;background:var(--green);color:#fff;border:none;border-radius:var(--rsm);padding:12px;font-size:14px;font-weight:600;font-family:'Syne',sans-serif;cursor:pointer;transition:background .2s;}
+.btn-next:hover{background:var(--green2);}
+.feat-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);}
+.feat-row:last-child{border-bottom:none;}
+.feat-lbl{font-size:13px;font-weight:500;}
+.feat-sub{font-size:11px;color:var(--text2);margin-top:2px;}
+.feat-locked{opacity:.4;pointer-events:none;}
+
+/* DASHBOARD */
+#dash-screen{flex-direction:column;min-height:100vh;}
+.sidebar{width:var(--sw);background:var(--bg2);border-right:1.5px solid var(--border);display:flex;flex-direction:column;padding:24px 0;position:fixed;top:0;left:0;bottom:0;z-index:100;transition:transform .3s,background .25s;overflow-y:auto;}
+.sb-top{padding:0 18px 18px;border-bottom:1.5px solid var(--border);margin-bottom:14px;}
+.sb-nav{flex:1;padding:0 10px;overflow-y:auto;}
+.nav-sec{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;padding:0 10px;margin:14px 0 5px;letter-spacing:.08em;}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:9px;cursor:pointer;font-size:13px;color:var(--text2);transition:all .15s;margin-bottom:2px;}
+.nav-item:hover{background:var(--green3);color:var(--green);}
+.nav-item.active{background:var(--green3);color:var(--green);font-weight:500;}
+.nav-item.locked-nav{opacity:.5;}
+.nav-icon{font-size:15px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:7px;background:var(--bg3);flex-shrink:0;}
+.nav-item.active .nav-icon{background:rgba(26,92,58,.15);}
+.lock-badge{margin-left:auto;font-size:10px;background:var(--gold3);color:var(--gold);padding:2px 7px;border-radius:99px;font-weight:600;}
+.sb-foot{padding:14px 14px 0;border-top:1.5px solid var(--border);}
+.plan-pill{background:linear-gradient(135deg,var(--green3),var(--gold3));border:1.5px solid var(--border);border-radius:12px;padding:12px;cursor:pointer;}
+.plan-pill:hover{border-color:var(--gold);}
+
+.topbar{display:none;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg2);border-bottom:1.5px solid var(--border);position:sticky;top:0;z-index:99;transition:background .25s;}
+.tb-left{display:flex;align-items:center;gap:8px;}
+.ham{background:none;border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:18px;cursor:pointer;padding:5px 10px;line-height:1;}
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99;backdrop-filter:blur(2px);}
+.ov.show{display:block;}
+
+/* Mobile-first: no sidebar margin, full width */
+.dash-main{margin-left:0;flex:1;padding:14px 14px 88px;min-width:0;background:var(--bg);transition:background .25s;width:100%;}
+.page{display:none;}
+.page.active{display:block;animation:fadeUp .3s ease both;}
+
+.page-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;gap:12px;flex-wrap:wrap;}
+.page-head h1{font-family:'Syne',sans-serif;font-weight:700;font-size:20px;color:var(--green);letter-spacing:-.4px;}
+.page-sub{font-size:13px;color:var(--text2);margin-top:3px;}
+.ph-right{display:flex;align-items:center;gap:10px;}
+.avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--teal));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;}
+.dk-btn{background:var(--bg3);border:1.5px solid var(--border);border-radius:8px;padding:6px 10px;font-size:16px;cursor:pointer;transition:all .2s;}
+.dk-btn:hover{background:var(--green3);}
+
+/* Mobile-first: 2-col stats */
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px;}
+.stat-card{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--r);padding:14px;position:relative;box-shadow:var(--shadow);transition:box-shadow .2s;}
+.stat-card:hover{box-shadow:0 4px 20px rgba(26,92,58,.12);}
+.stat-dot{position:absolute;top:12px;right:12px;width:8px;height:8px;border-radius:50%;}
+.sc-g .stat-dot{background:var(--teal);box-shadow:0 0 6px var(--teal);}
+.sc-w .stat-dot{background:var(--amber);box-shadow:0 0 6px var(--amber);}
+.sc-b .stat-dot{background:var(--red);box-shadow:0 0 6px var(--red);}
+.stat-lbl{font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:6px;letter-spacing:.07em;font-weight:600;}
+.stat-val{font-family:'Syne',sans-serif;font-weight:700;font-size:20px;letter-spacing:-.5px;line-height:1.1;}
+.stat-sub{font-size:11px;color:var(--text2);margin-top:4px;}
+
+.card{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--r);padding:16px;box-shadow:var(--shadow);margin-bottom:14px;transition:background .25s,border-color .25s;width:100%;box-sizing:border-box;}
+.card-title{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;color:var(--green);}
+.card-link{font-size:12px;color:var(--gold);cursor:pointer;font-weight:500;font-family:'DM Sans',sans-serif;}
+.card-link:hover{color:var(--gold2);}
+
+.debit-card{background:var(--debit);border-radius:20px;padding:22px;color:#fff;box-shadow:0 10px 30px rgba(26,92,58,.3);margin-bottom:20px;position:relative;overflow:hidden;cursor:pointer;transition:transform .2s,box-shadow .2s;width:100%;max-width:100%;box-sizing:border-box;}
+.debit-card:hover{transform:translateY(-2px);box-shadow:0 16px 40px rgba(26,92,58,.35);}
+.debit-card::before{content:'';position:absolute;top:-40%;right:-15%;width:180px;height:180px;background:rgba(255,255,255,.07);border-radius:50%;}
+.chip{width:40px;height:30px;background:linear-gradient(135deg,#c8922a,#e8a830);border-radius:6px;margin-bottom:20px;}
+.card-num{font-family:'Syne',sans-serif;font-size:17px;letter-spacing:3px;margin-bottom:14px;font-weight:600;}
+.card-row{display:flex;gap:24px;margin-bottom:14px;font-size:11px;text-transform:uppercase;opacity:.85;}
+.card-lbl{font-size:9px;opacity:.65;margin-bottom:2px;}
+.card-bal{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;margin-bottom:12px;}
+.card-foot{display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid rgba(255,255,255,.2);}
+.card-brand{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;}
+.card-ctrls{display:flex;gap:8px;}
+.card-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:6px 12px;font-size:11px;color:#fff;cursor:pointer;transition:all .2s;font-weight:500;}
+.card-btn:hover{background:rgba(255,255,255,.28);}
+
+.tx-item{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:9px;cursor:pointer;transition:background .15s;}
+.tx-item:hover{background:var(--bg3);}
+.tx-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;background:var(--bg3);flex-shrink:0;}
+.tx-info{flex:1;min-width:0;}
+.tx-nm{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tx-meta{font-size:11px;color:var(--text2);}
+.tx-amt{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;flex-shrink:0;}
+.out{color:var(--red);}.inc{color:var(--teal);}
+
+.cat-item{margin-bottom:13px;}
+.cat-item:last-child{margin-bottom:0;}
+.cat-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.cat-nm{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500;}
+.cdot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.cat-amt{font-size:12px;color:var(--text2);}
+.cat-amt strong{color:var(--text);}
+.bar{height:6px;background:var(--bg3);border-radius:99px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:99px;transition:width .6s ease;}
+
+.prog{height:8px;background:var(--bg3);border-radius:99px;overflow:hidden;}
+.prog-fill{height:100%;background:var(--gold);border-radius:99px;}
+
+.motshelo-card{background:var(--bg2);border:2px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:16px;transition:border-color .2s;}
+.motshelo-card:hover{border-color:var(--gold);}
+.m-hd{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.m-icon{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,var(--gold3),var(--green3));display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
+.m-name{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:var(--green);}
+.m-members{font-size:12px;color:var(--text2);}
+.m-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;}
+.m-stat{text-align:center;background:var(--bg3);border-radius:8px;padding:8px 4px;}
+.m-sv{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:var(--teal);}
+.m-sl{font-size:10px;color:var(--text3);margin-top:2px;}
+.m-actions{display:flex;gap:8px;margin-top:14px;}
+.m-btn{flex:1;background:var(--green3);border:1.5px solid var(--border);border-radius:8px;padding:9px;font-size:12px;color:var(--green);cursor:pointer;font-weight:600;font-family:'DM Sans',sans-serif;transition:all .2s;}
+.m-btn:hover{background:var(--green);color:#fff;}
+.m-btn.gold{background:var(--gold3);color:var(--gold);border-color:rgba(200,146,42,.3);}
+.m-btn.gold:hover{background:var(--gold);color:#fff;}
+
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+.ss{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--r);padding:20px;box-shadow:var(--shadow);}
+.ss h3{font-family:'Syne',sans-serif;font-size:14px;color:var(--green);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.s-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);}
+.s-row:last-child{border-bottom:none;}
+.s-lbl{font-size:13px;font-weight:500;}
+.s-sub{font-size:11px;color:var(--text2);margin-top:2px;}
+.toggle{width:42px;height:24px;border-radius:99px;background:var(--bg4);border:none;cursor:pointer;position:relative;flex-shrink:0;transition:background .2s;}
+.toggle.on{background:var(--green);}
+.toggle::after{content:'';position:absolute;top:4px;left:4px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+.toggle.on::after{left:22px;}
+
+.tier-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:24px;}
+.tier-card{background:var(--bg3);border:2px solid var(--border);border-radius:var(--r);padding:22px;cursor:pointer;transition:all .2s;position:relative;}
+.tier-card:hover{border-color:var(--green);}
+.tier-card.t-active{border-color:var(--green);background:var(--green3);}
+.tier-card.t-active-gold{border-color:var(--gold);background:var(--gold3);}
+.t-badge{position:absolute;top:12px;right:12px;font-size:10px;font-weight:700;padding:3px 8px;border-radius:99px;}
+
+.cat-list-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:9px;margin-bottom:6px;background:var(--bg3);border:1px solid var(--border);}
+.emoji-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
+.emoji-opt{width:34px;height:34px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg3);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:17px;transition:all .15s;}
+.emoji-opt:hover,.emoji-opt.sel{border-color:var(--green);background:var(--green3);}
+.col-row{display:flex;gap:8px;margin-bottom:14px;}
+.col-dot{width:26px;height:26px;border-radius:50%;border:3px solid transparent;cursor:pointer;transition:transform .15s;}
+.col-dot.sel{border-color:var(--text);transform:scale(1.2);}
+
+.pill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:99px;font-size:11px;font-weight:600;}
+.pill-g{background:var(--green3);color:var(--green);}
+.pill-gd{background:var(--gold3);color:var(--gold);}
+.pill-t{background:var(--teal3);color:#1d9487;}
+.pill-r{background:rgba(220,76,76,.1);color:var(--red);}
+
+.alert{border-radius:10px;padding:11px 14px;font-size:13px;margin-bottom:12px;line-height:1.5;}
+.alert-w{background:rgba(232,146,42,.1);border:1px solid rgba(232,146,42,.3);color:var(--amber);}
+.alert-g{background:var(--teal3);border:1px solid rgba(42,181,160,.3);color:#1d9487;}
+.alert-r{background:rgba(220,76,76,.1);border:1px solid rgba(220,76,76,.3);color:var(--red);}
+
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1.5px solid var(--border);padding:8px 0 env(safe-area-inset-bottom,10px);z-index:98;transition:background .25s;}
+.bnav-inner{display:flex;justify-content:space-around;}
+.bnav-item{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:4px 8px;}
+.bnav-icon{font-size:20px;color:var(--text3);}
+.bnav-lbl{font-size:10px;color:var(--text3);font-weight:500;}
+.bnav-item.active .bnav-icon,.bnav-item.active .bnav-lbl{color:var(--green);}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-5px);}75%{transform:translateX(5px);}}
+.shake{animation:shake .3s ease;}
+
+/* ── RESPONSIVE BREAKPOINTS ── */
+
+/* Desktop: sidebar visible, no bottom nav, 4-col stats */
+@media(min-width:900px){
+  /* Auth: side-by-side layout */
+  #auth-screen{flex-direction:row;align-items:stretch;}
+  .auth-left{display:flex;min-height:100vh;flex:1;}
+  .auth-right{width:460px;flex-shrink:0;min-height:100vh;padding:60px 52px;justify-content:center;}
+  .auth-mobile-brand{display:none;}
+  .auth-form-title{font-size:28px;}
+  .auth-form-sub{font-size:14px;}
+  .auth-form-header{margin-bottom:36px;}
+
+  /* Dashboard */
+  .sidebar{transform:translateX(0)!important;}
+  .topbar{display:none!important;}
+  .bottom-nav{display:none!important;}
+  .dash-main{margin-left:var(--sw);padding:28px 32px 40px;}
+  .stats-grid{grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+  .stat-card{padding:18px;}
+  .stat-val{font-size:23px;}
+  .stat-lbl{font-size:10px;}
+  .page-head h1{font-size:22px;}
+  .page-head{margin-bottom:22px;}
+  .card{padding:20px;margin-bottom:18px;}
+  .settings-grid{grid-template-columns:1fr 1fr;}
+  .tier-grid{grid-template-columns:1fr 1fr;}
+  .debit-card{max-width:420px;}
+}
+
+/* Tablet: sidebar slides, topbar shows, 2-col stats */
+@media(min-width:600px) and (max-width:899px){
+  /* Auth: show a compact left banner */
+  #auth-screen{flex-direction:column;}
+  .auth-left{display:flex;min-height:auto;padding:28px 28px 24px;flex:none;}
+  .auth-hero{padding-top:16px;}
+  .auth-hero-title{font-size:26px;}
+  .auth-features{display:none;}
+  .auth-left-foot{display:none;}
+  .auth-right{width:100%;padding:36px 32px;min-height:auto;}
+  .auth-mobile-brand{display:none;}
+  .auth-form-title{font-size:24px;}
+
+  /* Dashboard */
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);}
+  .topbar{display:flex;}
+  .dash-main{margin-left:0;padding:20px 20px 90px;}
+  .bottom-nav{display:block;}
+  .stats-grid{grid-template-columns:repeat(2,1fr);}
+  .settings-grid{grid-template-columns:1fr;}
+  .tier-grid{grid-template-columns:1fr 1fr;}
+  .dash-2col{grid-template-columns:1fr!important;}
+  .cat-2col{grid-template-columns:1fr!important;}
+  .debit-card{max-width:100%;}
+}
+
+/* Mobile: sidebar slides, topbar, bottom nav, 2-col stats */
+@media(max-width:599px){
+  :root{--sw:240px;}
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);}
+  .topbar{display:flex;}
+  .dash-main{margin-left:0;padding:14px 14px 88px;}
+  .bottom-nav{display:block;}
+  .stats-grid{grid-template-columns:repeat(2,1fr);gap:10px;}
+  .stat-card{padding:14px;}
+  .stat-val{font-size:18px;}
+  .stat-lbl{font-size:9px;}
+  .page-head h1{font-size:17px;}
+  .page-head{margin-bottom:16px;}
+  .card{padding:16px;margin-bottom:14px;}
+
+  /* Auth: single column, no left panel */
+  #auth-screen{flex-direction:column;}
+  .auth-left{display:none;}
+  .auth-right{width:100%;padding:32px 20px 28px;min-height:100vh;justify-content:flex-start;padding-top:48px;}
+  .auth-form-title{font-size:22px;}
+  .auth-form-sub{font-size:13px;}
+
+  /* Onboarding */
+  .ob-card{padding:24px 18px;}
+  .c3{grid-template-columns:1fr 1fr;}
+
+  /* Settings */
+  .settings-grid{grid-template-columns:1fr;}
+  .tier-grid{grid-template-columns:1fr;}
+  .dash-2col{grid-template-columns:1fr!important;}
+  .cat-2col{grid-template-columns:1fr!important;}
+
+  /* Debit card — full width, no overflow */
+  .debit-card{max-width:100%;border-radius:16px;padding:18px;}
+  .card-num{font-size:14px;letter-spacing:2px;}
+  .card-bal{font-size:20px;}
+
+  /* Motshelo */
+  .m-stats{grid-template-columns:repeat(3,1fr);}
+  .m-actions{flex-wrap:wrap;}
+
+  /* Modals */
+  .modal{padding:20px 18px;}
+  .modal-title{font-size:15px;}
+}
+
+/* Extra small (< 380px) */
+@media(max-width:379px){
+  .stats-grid{grid-template-columns:1fr 1fr;gap:8px;}
+  .stat-val{font-size:16px;}
+  .dash-main{padding:12px 12px 88px;}
+  .auth-right{padding:32px 16px 24px;}
+  .m-stats{grid-template-columns:repeat(3,1fr);}
+}
+
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px;}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<!-- ════ AUTH ════ -->
+<div class="screen active" id="auth-screen">
+
+  <!-- Left panel -->
+  <div class="auth-left">
+    <div class="auth-brand">
+      <div>
+        <div class="auth-brand-name">Pocket<span>Wise</span></div>
+        <div style="font-size:11px;color:rgba(255,255,255,.45);margin-top:1px;letter-spacing:.04em;">Smart budgeting · Botswana</div>
+      </div>
+    </div>
+    <div class="auth-hero">
+      <div class="auth-hero-title">Your money,<br><span>your rules.</span></div>
+      <div class="auth-hero-sub">Built for Botswana — from students to first-time earners. Track, save and grow your Pula with confidence.</div>
+      <div class="auth-features">
+        <div class="auth-feat"><div class="auth-feat-icon">🔮</div>End-of-month forecasting</div>
+        <div class="auth-feat"><div class="auth-feat-icon">🛒</div>Grocery price comparison — Gaborone stores</div>
+        <div class="auth-feat"><div class="auth-feat-icon">🤖</div>AI coach in English &amp; Setswana</div>
+        <div class="auth-feat"><div class="auth-feat-icon">👥</div>Motshelo / Stokvel tracker</div>
+      </div>
+    </div>
+    <div class="auth-left-foot">© 2026 PocketWise · Botswana</div>
+  </div>
+
+  <!-- Right panel -->
+  <div class="auth-right">
+    <!-- Mobile-only brand (hidden on desktop where left panel shows) -->
+    <div class="auth-mobile-brand">
+      <div class="auth-mobile-brand-logo">💰</div>
+      <div class="auth-mobile-brand-name">Pocket<span>Wise</span></div>
+    </div>
+
+    <!-- SIGN IN VIEW -->
+    <div class="auth-signin" id="view-signin">
+      <div class="auth-form-header">
+        <div class="auth-form-tag">Welcome back</div>
+        <div class="auth-form-title">Sign in to PocketWise</div>
+        <div class="auth-form-sub">Your finances are waiting for you.</div>
+      </div>
+
+      <!-- Saved accounts section -->
+      <div id="saved-accounts-section" style="display:none;">
+        <div class="saved-sect-title">Continue as</div>
+        <div class="saved-accounts" id="saved-accounts-list"></div>
+        <div class="or-divider"><div class="or-divider-line"></div><div class="or-divider-text">or sign in with a different account</div><div class="or-divider-line"></div></div>
+      </div>
+
+      <div id="signin-manual">
+        <div class="fg">
+          <label>Email address</label>
+          <div class="input-wrap">
+            <span class="input-icon">✉️</span>
+            <input type="email" id="li-email" placeholder="you@example.com" autocomplete="email" oninput="this.style.borderColor='';this.style.boxShadow=''">
+          </div>
+        </div>
+        <div class="fg">
+          <label>Password</label>
+          <div class="input-wrap">
+            <span class="input-icon">🔒</span>
+            <input type="password" id="li-pass" placeholder="••••••••" autocomplete="current-password">
+          </div>
+        </div>
+        <div style="text-align:right;margin:-8px 0 18px;">
+          <span style="font-size:12px;color:var(--green);cursor:pointer;font-weight:600;letter-spacing:-.01em;" onclick="toast('Password reset link sent — check your email 📧')">Forgot password?</span>
+        </div>
+        <button class="btn" style="margin-bottom:16px;letter-spacing:.01em;" onclick="doLogin()">Sign in →</button>
+        <div class="auth-divider-row"><div class="auth-divider-line"></div><div class="auth-divider-text">or continue with</div><div class="auth-divider-line"></div></div>
+        <button class="auth-google-btn" onclick="googleSignIn()">
+          <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          Continue with Google
+        </button>
+      </div>
+
+      <div class="auth-footer-link" style="margin-top:24px;">Don't have an account? <a onclick="showCreateView()">Create one →</a></div>
+    </div>
+
+    <!-- CREATE ACCOUNT VIEW -->
+    <div class="auth-create" id="view-create">
+      <div class="auth-form-header">
+        <div class="auth-form-tag">Get started — it's free</div>
+        <div class="auth-form-title">Create your account</div>
+        <div class="auth-form-sub">Join thousands of Batswana managing money smarter.</div>
+      </div>
+
+      <div class="fg">
+        <label>Full name</label>
+        <div class="input-wrap">
+          <span class="input-icon">👤</span>
+          <input type="text" id="su-name" placeholder="e.g. Keamo Mothibi" autocomplete="name">
+        </div>
+      </div>
+      <div class="fg">
+        <label>Email address</label>
+        <div class="input-wrap">
+          <span class="input-icon">✉️</span>
+          <input type="email" id="su-email" placeholder="you@example.com" autocomplete="email" oninput="this.style.borderColor='';this.style.boxShadow=''">
+        </div>
+      </div>
+      <div class="fg">
+        <label>Password</label>
+        <div class="input-wrap">
+          <span class="input-icon">🔒</span>
+          <input type="password" id="su-pass" placeholder="At least 8 characters" autocomplete="new-password" oninput="checkStrength(this.value)">
+        </div>
+        <div class="input-strength" id="strength-bar" style="display:none;"><div class="input-strength-fill" id="strength-fill"></div></div>
+        <div id="strength-label" style="font-size:11px;color:var(--text3);margin-top:3px;"></div>
+      </div>
+      <button class="btn" style="margin-bottom:16px;" onclick="doSignup()">Create account →</button>
+      <div class="auth-divider-row"><div class="auth-divider-line"></div><div class="auth-divider-text">or continue with</div><div class="auth-divider-line"></div></div>
+      <button class="auth-google-btn" onclick="googleSignIn()">
+        <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Continue with Google
+      </button>
+
+      <div class="auth-footer-link">Already have an account? <a onclick="showSigninView()">Sign in →</a></div>
+      <div style="margin-top:16px;font-size:11px;color:var(--text3);text-align:center;line-height:1.6;">By creating an account you agree to our Terms of Service and Privacy Policy.</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════ ONBOARDING ════ -->
+<div class="screen" id="onboard-screen">
+  <div class="ob-card">
+    <div class="step-bar">
+      <div class="sdot done" id="d1"></div><div class="sdot" id="d2"></div>
+      <div class="sdot" id="d3"></div><div class="sdot" id="d4"></div><div class="sdot" id="d5"></div>
+    </div>
+
+    <!-- S1: Profile type + name -->
+    <div class="ob-step active" id="s1">
+      <div class="ob-emoji">👤</div>
+      <div class="ob-title">Welcome! Who are you?</div>
+      <div class="ob-sub">PocketWise customises your dashboard and tips based on your situation.</div>
+      <div class="opt-grid c3">
+        <div class="opt-card" onclick="pick(this,'profile','student')"><div class="opt-icon">🎓</div><div class="opt-label">Student</div><div class="opt-sub">University / college</div></div>
+        <div class="opt-card" onclick="pick(this,'profile','professional')"><div class="opt-icon">💼</div><div class="opt-label">Professional</div><div class="opt-sub">First job or career</div></div>
+        <div class="opt-card" onclick="pick(this,'profile','general')"><div class="opt-icon">🙂</div><div class="opt-label">General</div><div class="opt-sub">Just managing money</div></div>
+      </div>
+      <div class="fg"><label>Your preferred name</label><input type="text" id="ob-name" placeholder="e.g. Keamo"></div>
+      <div class="ob-nav"><button class="btn-next" onclick="goStep(2)">Continue →</button></div>
+    </div>
+
+    <!-- S2: Income -->
+    <div class="ob-step" id="s2">
+      <div class="ob-emoji">💰</div>
+      <div class="ob-title">How do you receive money?</div>
+      <div class="ob-sub">This sets up your budget cycle, payday tracker, and end-of-month forecast.</div>
+      <div class="opt-grid c2">
+        <div class="opt-card" onclick="pick(this,'income','salary')"><div class="opt-icon">🏦</div><div class="opt-label">Monthly salary</div><div class="opt-sub">Regular employment</div></div>
+        <div class="opt-card" onclick="pick(this,'income','allowance')"><div class="opt-icon">🎒</div><div class="opt-label">Allowance</div><div class="opt-sub">Family / institution</div></div>
+        <div class="opt-card" onclick="pick(this,'income','bursary')"><div class="opt-icon">📅</div><div class="opt-label">Loan / bursary</div><div class="opt-sub">Termly disbursement</div></div>
+        <div class="opt-card" onclick="pick(this,'income','freelance')"><div class="opt-icon">🔄</div><div class="opt-label">Freelance</div><div class="opt-sub">Variable income</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:6px;">
+        <div class="fg" style="margin-bottom:0;"><label>Monthly amount (P)</label><input type="number" id="ob-income" placeholder="e.g. 4200" min="0"></div>
+        <div class="fg" style="margin-bottom:0;"><label>Payday</label><select id="ob-payday"><option value="1">1st of month</option><option value="5">5th of month</option><option value="15">15th of month</option><option value="25">25th of month</option><option value="28">28th of month</option><option value="last">Last day</option></select></div>
+      </div>
+      <div class="ob-nav"><button class="btn-back" onclick="goStep(1)">← Back</button><button class="btn-next" onclick="goStep(3)">Continue →</button></div>
+    </div>
+
+    <!-- S3: Payment methods -->
+    <div class="ob-step" id="s3">
+      <div class="ob-emoji">💳</div>
+      <div class="ob-title">Link your payment methods</div>
+      <div class="ob-sub">Select all that apply. You can always add more in Settings.</div>
+      <div class="opt-grid c2" style="margin-bottom:18px;">
+        <div class="pay-card" onclick="togPay(this,'fnb')"><div class="pay-logo" style="background:rgba(0,100,220,.1);">🏦</div><div><div style="font-size:13px;font-weight:600;">FNB Botswana</div><div style="font-size:11px;color:var(--text2);">Bank card / account</div></div></div>
+        <div class="pay-card" onclick="togPay(this,'orange')"><div class="pay-logo" style="background:rgba(255,100,0,.1);">🟠</div><div><div style="font-size:13px;font-weight:600;">Orange Money</div><div style="font-size:11px;color:var(--text2);">Mobile money</div></div></div>
+        <div class="pay-card" onclick="togPay(this,'myzaka')"><div class="pay-logo" style="background:rgba(26,92,58,.1);">💚</div><div><div style="font-size:13px;font-weight:600;">MyZaka</div><div style="font-size:11px;color:var(--text2);">Mascom mobile money</div></div></div>
+        <div class="pay-card" onclick="togPay(this,'smega')"><div class="pay-logo" style="background:rgba(100,60,200,.1);">💜</div><div><div style="font-size:13px;font-weight:600;">Smega</div><div style="font-size:11px;color:var(--text2);">BTC mobile money</div></div></div>
+        <div class="pay-card" onclick="togPay(this,'stanbic')"><div class="pay-logo" style="background:rgba(200,146,42,.1);">🏧</div><div><div style="font-size:13px;font-weight:600;">Stanbic / Absa</div><div style="font-size:11px;color:var(--text2);">Bank card</div></div></div>
+        <div class="pay-card" onclick="togPay(this,'cash')"><div class="pay-logo" style="background:rgba(100,100,100,.1);">✏️</div><div><div style="font-size:13px;font-weight:600;">Cash only</div><div style="font-size:11px;color:var(--text2);">Log manually</div></div></div>
+      </div>
+      <div class="ob-nav"><button class="btn-back" onclick="goStep(2)">← Back</button><button class="btn-next" onclick="goStep(4)">Continue →</button></div>
+    </div>
+
+    <!-- S4: Plan -->
+    <div class="ob-step" id="s4">
+      <div class="ob-emoji">✦</div>
+      <div class="ob-title">Choose your plan</div>
+      <div class="ob-sub">Start free — upgrade any time. Premium pays for itself the first time you catch an overspend or save on groceries.</div>
+      <div class="opt-grid c2" style="margin-bottom:20px;">
+        <div class="opt-card sel" id="ob-free" onclick="pickPlan('free')">
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-bottom:6px;">Freemium</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:26px;color:var(--green);margin-bottom:6px;">Free</div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.6;text-align:left;">Budget planner · Manual logging · Customisable categories · Daily tips</div>
+        </div>
+        <div class="opt-card" id="ob-prem" onclick="pickPlan('premium')" style="border-color:rgba(200,146,42,.4);">
+          <div style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-bottom:6px;">Premium ✦</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:26px;color:var(--gold);margin-bottom:6px;">P80<span style="font-size:13px;font-weight:400;color:var(--text2);">/mo</span></div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.6;text-align:left;">Forecasting · AI Coach in Setswana · Grocery prices · Motshelo · Card management + more</div>
+        </div>
+      </div>
+      <div class="ob-nav"><button class="btn-back" onclick="goStep(3)">← Back</button><button class="btn-next" onclick="goStep(5)">Continue →</button></div>
+    </div>
+
+    <!-- S5: Feature customise -->
+    <div class="ob-step" id="s5">
+      <div class="ob-emoji">🎛️</div>
+      <div class="ob-title">Customise your features</div>
+      <div class="ob-sub">Choose what shows in your dashboard. Locked features require Premium — you can change everything in Settings at any time.</div>
+      <div id="ob-feat-list" style="margin-bottom:22px;max-height:320px;overflow-y:auto;padding-right:4px;"></div>
+      <div class="ob-nav">
+        <button class="btn-back" onclick="goStep(4)">← Back</button>
+        <button class="btn-next" id="finish-btn" onclick="finishOnboard()">Let's go 🎉</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ DASHBOARD ════ -->
+<div class="screen" id="dash-screen">
+
+  <div class="topbar">
+    <div class="tb-left">
+      <div class="logo-name" style="font-size:16px;"><span class="logo-p">Pocket</span><span class="logo-w">Wise</span></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button class="dk-btn" onclick="toggleDark()" id="dk-tb">🌙</button>
+      <button class="ham" onclick="openSb()">☰</button>
+    </div>
+  </div>
+
+  <div class="ov" id="ov" onclick="closeSb()"></div>
+
+  <aside class="sidebar" id="sb">
+    <div class="sb-top" style="display:flex;align-items:center;gap:10px;">
+      <div>
+      <div class="logo-name" style="font-size:16px;"><span class="logo-p">Pocket</span><span class="logo-w">Wise</span></div>
+      <div style="font-size:10px;color:var(--text3);margin-top:2px;">Smart budgeting · Botswana</div>
+      </div>
+    </div>
+    <nav class="sb-nav" id="sb-nav"></nav>
+    <div class="sb-foot">
+      <div class="plan-pill" onclick="showPage('subscription',null)">
+        <div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;font-weight:600;">Current plan</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:var(--green);margin-top:2px;" id="sb-plan-nm">Free</div>
+        <div style="font-size:11px;color:var(--gold);margin-top:6px;font-weight:500;" id="sb-plan-cta">Upgrade to Premium →</div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="dash-main">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dash">
+      <div class="page-head">
+        <div><h1 id="dash-greet">Good morning 👋</h1><div class="page-sub" id="dash-sub">Setting up your data...</div></div>
+        <div class="ph-right">
+          <button class="dk-btn" onclick="toggleDark()" id="dk-main">🌙</button>
+          <div class="avatar" id="dash-av">?</div>
+        </div>
+      </div>
+
+      <!-- Debit card (premium + FNB linked) -->
+      <div id="debit-wrap" style="display:none;">
+        <div class="debit-card" onclick="showPage('card',null)">
+          <div class="chip"></div>
+          <div class="card-num">•••• •••• •••• 4521</div>
+          <div class="card-row">
+            <span><div class="card-lbl">Cardholder</div><span id="card-nm">—</span></span>
+            <span><div class="card-lbl">Expires</div>09/28</span>
+          </div>
+          <div class="card-bal" id="card-bal">P 0.00</div>
+          <div class="card-foot">
+            <span class="card-brand">FNB GOLD</span>
+            <span style="font-size:11px;opacity:.8;">Tap to manage →</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-grid" id="dash-stats">
+        <div class="stat-card sc-g"><div class="stat-dot"></div><div class="stat-lbl">Monthly income</div><div class="stat-val" style="color:var(--teal);" id="s-income">—</div><div class="stat-sub" id="s-income-sub">—</div></div>
+        <div class="stat-card sc-w"><div class="stat-dot"></div><div class="stat-lbl">Spent so far</div><div class="stat-val" style="color:var(--amber);" id="s-spent">—</div><div class="stat-sub" id="s-spent-sub">—</div></div>
+        <div class="stat-card sc-g"><div class="stat-dot"></div><div class="stat-lbl">Remaining</div><div class="stat-val" id="s-rem">—</div><div class="stat-sub" id="s-rem-sub">—</div></div>
+        <div class="stat-card sc-g" id="s-saved-card"><div class="stat-dot"></div><div class="stat-lbl">Saved this month</div><div class="stat-val" style="color:var(--teal);" id="s-saved">—</div><div class="stat-sub">Goal: 20% of income</div></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;" class="dash-2col">
+        <div>
+          <div class="card">
+            <div class="card-title">Recent transactions <span class="card-link" onclick="showPage('txns',null)">View all →</span></div>
+            <div id="dash-tx-list"><div style="color:var(--text2);font-size:13px;text-align:center;padding:16px;">No transactions yet. Add your first one!</div></div>
+          </div>
+          <div class="card" id="dash-forecast-card" style="display:none;">
+            <div class="card-title">End-of-month forecast</div>
+            <div id="dash-forecast-content"></div>
+          </div>
+        </div>
+        <div>
+          <div class="card" id="dash-motshelo-card" style="display:none;">
+            <div class="card-title">Active Motshelos <span class="card-link" onclick="showPage('motshelo',null)">View all →</span></div>
+            <div id="dash-motshelo-preview"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Budget categories <span class="card-link" onclick="showPage('budget',null)">Manage →</span></div>
+            <div id="dash-cats"><div style="color:var(--text2);font-size:13px;text-align:center;padding:16px;">No categories yet.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BUDGET & CATEGORIES -->
+    <div class="page" id="page-budget">
+      <div class="page-head"><div><h1>Budget &amp; Categories</h1><div class="page-sub">Customise your spending categories and monthly limits</div></div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;" class="cat-2col">
+        <div>
+          <div class="card">
+            <div class="card-title">Add new category</div>
+            <div class="fg"><label>Category name</label><input type="text" id="cat-name-i" placeholder="e.g. Gym, Church offering, Textbooks"></div>
+            <div style="margin-bottom:12px;">
+              <label style="display:block;margin-bottom:8px;">Icon</label>
+              <div class="emoji-row">
+                <div class="emoji-opt sel" onclick="pickEmoji(this,'🍽️')">🍽️</div>
+                <div class="emoji-opt" onclick="pickEmoji(this,'🚌')">🚌</div>
+                <div class="emoji-opt" onclick="pickEmoji(this,'🛒')">🛒</div>
+                <div class="emoji-opt" onclick="pickEmoji(this,'📱')">📱</div>
+                <div class="emoji-opt" onclick="pickEmoji(this,'🏋️')">🏋️</div>
+                <div class="emoji-opt" onclick="pickEmoji(this,'📚')">📚</div>
+                <div class="emoji-opt" onclick="pickEmoji(this,'⛪')">⛪</div>
+                <div class="emoji-opt" onclick="pickEmoji(this,'👗')">👗</div>
+                <div class="emoji-opt" onclick="pickEmoji(this,'🎮')">🎮</div>
+                <div class="emoji-opt" onclick="pickEmoji(this,'⛽')">⛽</div>
+                <div class="emoji-opt" onclick="pickEmoji(this,'💊')">💊</div>
+                <div class="emoji-opt" onclick="pickEmoji(this,'🏠')">🏠</div>
+                <div class="emoji-opt" onclick="pickEmoji(this,'✈️')">✈️</div>
+                <div class="emoji-opt" onclick="pickEmoji(this,'👥')">👥</div>
+              </div>
+            </div>
+            <div style="margin-bottom:14px;">
+              <label style="display:block;margin-bottom:8px;">Colour</label>
+              <div class="col-row">
+                <div class="col-dot sel" onclick="pickColor(this,'#2ab5a0')" style="background:#2ab5a0;"></div>
+                <div class="col-dot" onclick="pickColor(this,'#1a5c3a')" style="background:#1a5c3a;"></div>
+                <div class="col-dot" onclick="pickColor(this,'#c8922a')" style="background:#c8922a;"></div>
+                <div class="col-dot" onclick="pickColor(this,'#dc4c4c')" style="background:#dc4c4c;"></div>
+                <div class="col-dot" onclick="pickColor(this,'#6366f1')" style="background:#6366f1;"></div>
+                <div class="col-dot" onclick="pickColor(this,'#ec4899')" style="background:#ec4899;"></div>
+                <div class="col-dot" onclick="pickColor(this,'#0ea5e9')" style="background:#0ea5e9;"></div>
+                <div class="col-dot" onclick="pickColor(this,'#888')" style="background:#888;"></div>
+              </div>
+            </div>
+            <div class="fg"><label>Monthly limit (P)</label><input type="number" id="cat-lim-i" placeholder="e.g. 500" min="0"></div>
+            <button class="btn" onclick="addCat()">Add category</button>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="card-title">Your categories <span class="pill pill-g" id="cat-count">0</span></div>
+            <div id="cat-list-render"><div style="color:var(--text2);font-size:13px;text-align:center;padding:16px;">Add your first category on the left.</div></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Spending overview</div>
+            <div id="cat-overview"><div style="color:var(--text2);font-size:13px;text-align:center;padding:12px;">No categories yet.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MOTSHELO -->
+    <div class="page" id="page-motshelo">
+      <div class="page-head">
+        <div><h1>Motshelo · Stokvel</h1><div class="page-sub">Your group savings circles</div></div>
+        <button class="btn btn-sm" onclick="openMod('new-motshelo')">+ New Motshelo</button>
+      </div>
+      <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);">
+        <div class="stat-card sc-g"><div class="stat-dot"></div><div class="stat-lbl">Total Saved</div><div class="stat-val" style="color:var(--gold);" id="m-total">P0</div></div>
+        <div class="stat-card sc-g"><div class="stat-dot"></div><div class="stat-lbl">Active Groups</div><div class="stat-val" id="m-groups">0</div></div>
+        <div class="stat-card sc-g"><div class="stat-dot"></div><div class="stat-lbl">Next Payout</div><div class="stat-val" style="font-size:15px;" id="m-next">—</div></div>
+      </div>
+      <div id="motshelo-list"><div style="color:var(--text2);font-size:13px;text-align:center;padding:30px;background:var(--bg2);border-radius:var(--r);border:1.5px solid var(--border);">No Motshelo groups yet.<br>Create your first one above.</div></div>
+    </div>
+
+    <!-- CARD -->
+    <div class="page" id="page-card">
+      <div class="page-head"><div><h1>My Linked Card</h1><div class="page-sub" id="card-page-sub">—</div></div></div>
+      <div class="debit-card" style="max-width:400px;cursor:default;">
+        <div class="chip"></div>
+        <div class="card-num" id="cp-num">•••• •••• •••• ••••</div>
+        <div class="card-row">
+          <span><div class="card-lbl">Cardholder</div><span id="cp-holder">—</span></span>
+          <span><div class="card-lbl">Expires</div>09/28</span>
+          <span><div class="card-lbl">CVV</div>•••</span>
+        </div>
+        <div class="card-bal" id="cp-bal">P —</div>
+        <div class="card-foot">
+          <span class="card-brand" id="cp-brand">—</span>
+          <div class="card-ctrls">
+            <button class="card-btn" id="freeze-btn" onclick="freezeCard(this)">🔒 Freeze</button>
+            <button class="card-btn" onclick="openMod('limits-modal')">⚙️ Limits</button>
+          </div>
+        </div>
+      </div>
+      <div class="settings-grid" style="margin-top:20px;">
+        <div class="ss">
+          <h3>Card Controls</h3>
+          <div class="s-row"><div><div class="s-lbl">Online payments</div><div class="s-sub">Internet &amp; app purchases</div></div><button class="toggle on" onclick="togBtn(this,'Online payments')"></button></div>
+          <div class="s-row"><div><div class="s-lbl">Contactless payments</div><div class="s-sub">Tap to pay</div></div><button class="toggle on" onclick="togBtn(this,'Contactless payments')"></button></div>
+          <div class="s-row"><div><div class="s-lbl">ATM withdrawals</div><div class="s-sub" id="atm-limit-label">Daily limit: P2,000</div></div><button class="toggle on" onclick="togBtn(this,'ATM withdrawals')"></button></div>
+          <div class="s-row"><div><div class="s-lbl">International transactions</div><div class="s-sub">Foreign currency</div></div><button class="toggle" onclick="togBtn(this,'International transactions')"></button></div>
+        </div>
+        <div class="ss">
+          <h3>Spending Limits</h3>
+          <div class="fg"><label>Daily spending limit (P)</label><input type="number" id="dlim-custom" placeholder="e.g. 1000" min="0" oninput="APP.card.dailyLimit=parseFloat(this.value)||APP.card.dailyLimit"></div>
+          <div class="fg"><label>Single transaction limit (P)</label><input type="number" id="tlim-custom" placeholder="e.g. 500" min="0" oninput="APP.card.singleLimit=parseFloat(this.value)||APP.card.singleLimit"></div>
+          <div class="fg"><label>ATM daily withdrawal limit (P)</label><input type="number" id="atmlim-custom" placeholder="e.g. 2000" min="0" oninput="APP.card.atmLimit=parseFloat(this.value)||APP.card.atmLimit"></div>
+          <button class="btn" onclick="saveLimits()">Save limits</button>
+        </div>
+        <div class="ss">
+          <h3>Recent Card Activity</h3>
+          <div id="card-activity"></div>
+        </div>
+        <div class="ss">
+          <h3>Card Benefits</h3>
+          <div style="display:flex;gap:12px;margin-bottom:14px;"><span style="font-size:22px;">🛡️</span><div><div style="font-weight:600;font-size:13px;">Purchase Protection</div><div style="font-size:12px;color:var(--text2);">90-day protection on all purchases</div></div></div>
+          <div style="display:flex;gap:12px;margin-bottom:14px;"><span style="font-size:22px;">✈️</span><div><div style="font-weight:600;font-size:13px;">Travel Insurance</div><div style="font-size:12px;color:var(--text2);">Complimentary when booking with card</div></div></div>
+          <div style="display:flex;gap:12px;"><span style="font-size:22px;">🎁</span><div><div style="font-weight:600;font-size:13px;">eBucks Rewards</div><div style="font-size:12px;color:var(--text2);">Earn up to 15% back in eBucks</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRANSACTIONS -->
+    <div class="page" id="page-txns">
+      <div class="page-head">
+        <div><h1>Transactions</h1><div class="page-sub">All your income and spending</div></div>
+        <button class="btn btn-sm" onclick="openMod('add-tx')">+ Add transaction</button>
+      </div>
+      <div class="card" style="margin-bottom:16px;">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <input type="text" id="tx-search" placeholder="Search..." style="flex:1;min-width:120px;" oninput="filterTx()">
+          <select id="tx-filter-cat" style="width:140px;" onchange="filterTx()"><option value="">All categories</option></select>
+          <select id="tx-filter-type" style="width:120px;" onchange="filterTx()"><option value="">All types</option><option value="expense">Expenses</option><option value="income">Income</option></select>
+        </div>
+      </div>
+      <div class="card" id="tx-list-card"></div>
+    </div>
+
+    <!-- SUBSCRIPTION / PLAN -->
+    <div class="page" id="page-subscription">
+      <div class="page-head"><div><h1>Plan &amp; Features</h1><div class="page-sub">Switch your tier and choose which features you want active</div></div></div>
+      <div class="tier-grid">
+        <div class="tier-card" id="t-free" onclick="changeTier('free')">
+          <div id="badge-free" class="t-badge" style="display:none;background:var(--teal);color:#fff;">✓ Current</div>
+          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-bottom:8px;">Freemium</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:32px;color:var(--green);margin-bottom:6px;">Free</div>
+          <div style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:12px;">Budget planner · Manual logging · Customisable categories · Daily tips. No payment required.</div>
+        </div>
+        <div class="tier-card" id="t-prem" onclick="changeTier('premium')" style="border-color:rgba(200,146,42,.4);">
+          <div id="badge-prem" class="t-badge" style="display:none;background:var(--gold);color:#fff;">✓ Current</div>
+          <div style="font-size:11px;color:var(--gold);text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-bottom:8px;">Premium ✦</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:32px;color:var(--gold);margin-bottom:6px;">P80<span style="font-size:14px;font-weight:400;color:var(--text2);">/month</span></div>
+          <div style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:12px;">Forecasting · AI coach in Setswana · Grocery prices · Motshelo · Card management · Challenges + more. Cancel any time.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Feature customisation <span style="font-size:12px;color:var(--text2);font-weight:400;font-family:'DM Sans',sans-serif;">Toggle what appears in your dashboard</span></div>
+        <div id="feat-toggle-list"></div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="page" id="page-settings">
+      <div class="page-head"><div><h1>Settings</h1><div class="page-sub">Account, preferences and accessibility</div></div></div>
+      <div class="settings-grid">
+        <div class="ss">
+          <h3>Profile</h3>
+          <div class="fg"><label>Full name</label><input type="text" id="set-name" placeholder="Your name"></div>
+          <div class="fg"><label>Email</label><input type="email" id="set-email" placeholder="you@example.com"></div>
+          <div class="fg"><label>Profile type</label><select id="set-type"><option>Student</option><option>Young professional</option><option>General</option></select></div>
+          <button class="btn" onclick="saveProfile()">Save changes</button>
+        </div>
+        <div class="ss">
+          <h3>Income &amp; payday</h3>
+          <div class="fg"><label>Monthly income (P)</label><input type="number" id="set-income" placeholder="e.g. 4200" min="0"></div>
+          <div class="fg"><label>Income type</label><select id="set-income-type"><option>Monthly salary</option><option>Allowance</option><option>Student loan / bursary</option><option>Freelance / irregular</option></select></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+            <div class="fg" style="margin-bottom:0;"><label>Payday (day of month)</label><input type="number" id="set-payday" placeholder="e.g. 25" min="1" max="31"></div>
+            <div class="fg" style="margin-bottom:0;"><label>Frequency</label><select><option>Monthly</option><option>Fortnightly</option><option>Per semester</option></select></div>
+          </div>
+          <button class="btn" onclick="saveIncome()">Update income</button>
+        </div>
+        <div class="ss">
+          <h3>Linked accounts</h3>
+          <div id="linked-accounts-list"></div>
+        </div>
+        <div class="ss">
+          <h3>Notifications</h3>
+          <div class="s-row"><div><div class="s-lbl">Overspending alerts</div></div><button class="toggle on" onclick="togBtn(this,'Overspending alerts')"></button></div>
+          <div class="s-row"><div><div class="s-lbl">Velocity warnings</div></div><button class="toggle on" onclick="togBtn(this,'Velocity warnings')"></button></div>
+          <div class="s-row"><div><div class="s-lbl">Daily tip</div></div><button class="toggle on" onclick="togBtn(this,'Daily tip')"></button></div>
+          <div class="s-row"><div><div class="s-lbl">Motshelo reminders</div></div><button class="toggle on" onclick="togBtn(this,'Motshelo reminders')"></button></div>
+          <div class="s-row"><div><div class="s-lbl">Grocery price drops</div></div><button class="toggle" onclick="togBtn(this,'Grocery price drops')"></button></div>
+        </div>
+        <div class="ss">
+          <h3>Appearance</h3>
+          <div class="s-row"><div><div class="s-lbl">Dark mode</div><div class="s-sub">Easy on the eyes at night</div></div><button class="toggle" id="dk-settings" onclick="toggleDark()"></button></div>
+          <div class="fg" style="margin-top:16px;"><label>App language</label><select onchange="toast('Language saved ✓')"><option>English</option><option>Setswana</option></select></div>
+          <div class="fg"><label>Currency display</label><select onchange="toast('Currency saved ✓')"><option>BWP (Pula)</option><option>ZAR (Rand)</option><option>USD</option></select></div>
+        </div>
+        <div class="ss">
+          <h3>Privacy &amp; security</h3>
+          <div class="s-row"><div><div class="s-lbl">Biometric login</div></div><button class="toggle" onclick="togBtn(this,'Biometric login')"></button></div>
+          <div class="s-row"><div><div class="s-lbl">Anonymous benchmarking</div></div><button class="toggle on" onclick="togBtn(this,'Benchmarking')"></button></div>
+          <div style="height:1px;background:var(--border);margin:14px 0;"></div>
+          <button class="btn btn-outline" style="margin-bottom:8px;display:flex;justify-content:center;" onclick="toast('Data export requested — check your email in 24 hours')">Download my data</button>
+          <button class="btn" style="background:var(--red);display:flex;justify-content:center;" onclick="confirmDelete()">Delete account</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <nav class="bottom-nav"><div class="bnav-inner" id="bnav"></div></nav>
+</div>
+
+<!-- ════ MODALS ════ -->
+<div class="modal-ov" id="new-motshelo">
+  <div class="modal">
+    <div class="modal-hd"><div><div class="modal-title">Motshelo Groups</div><div class="modal-sub">Create a new circle or join one with an invite code</div></div><button class="modal-close" onclick="closeMod('new-motshelo')">✕</button></div>
+    <div class="auth-tabs" style="margin-bottom:18px;">
+      <div class="auth-tab active" id="mtab-create" onclick="switchMTab('create')">Create group</div>
+      <div class="auth-tab" id="mtab-join" onclick="switchMTab('join')">Join with code</div>
+    </div>
+    <!-- Create -->
+    <div id="mpanel-create">
+      <div class="fg"><label>Group name</label><input type="text" id="m-nm" placeholder="e.g. Office Family"></div>
+      <div class="fg"><label>Max members</label><input type="number" id="m-mem" placeholder="e.g. 8" min="2"></div>
+      <div class="fg"><label>Monthly contribution per member (P)</label><input type="number" id="m-ctrib" placeholder="e.g. 200" min="0"></div>
+      <div class="fg"><label>Your payout position (1 = first)</label><input type="number" id="m-pos" placeholder="e.g. 4" min="1"></div>
+      <div class="fg"><label>Cycle length (months)</label><input type="number" id="m-cycle" placeholder="e.g. 8" min="2"></div>
+      <div class="btn-row">
+        <button class="btn btn-outline" onclick="closeMod('new-motshelo')">Cancel</button>
+        <button class="btn" onclick="createMotshelo()">Create &amp; get invite code</button>
+      </div>
+    </div>
+    <!-- Join -->
+    <div id="mpanel-join" style="display:none;">
+      <div style="background:var(--green3);border:1.5px solid rgba(26,92,58,.2);border-radius:12px;padding:14px;margin-bottom:18px;font-size:13px;color:var(--text2);line-height:1.6;">
+        Ask the group creator to share their 6-character invite code. Anyone with PocketWise can join using that code.
+      </div>
+      <div class="fg"><label>Invite code</label><input type="text" id="m-join-code" placeholder="e.g. GRP4X2" maxlength="8" style="text-transform:uppercase;letter-spacing:.15em;font-size:18px;font-weight:600;text-align:center;"></div>
+      <div class="fg"><label>Your payout position in this group</label><input type="number" id="m-join-pos" placeholder="e.g. 3" min="1"></div>
+      <div class="btn-row">
+        <button class="btn btn-outline" onclick="closeMod('new-motshelo')">Cancel</button>
+        <button class="btn" onclick="joinMotshelo()">Join group</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-ov" id="add-tx">
+  <div class="modal">
+    <div class="modal-hd"><div><div class="modal-title">Add transaction</div><div class="modal-sub">Log an expense or income</div></div><button class="modal-close" onclick="closeMod('add-tx')">✕</button></div>
+    <div class="fg"><label>Description</label><input type="text" id="tx-desc" placeholder="e.g. Choppies groceries"></div>
+    <div class="fg"><label>Amount (P)</label><input type="number" id="tx-amt" placeholder="e.g. 142" min="0"></div>
+    <div class="fg"><label>Type</label><select id="tx-type" onchange="toggleTxType(this)"><option value="expense">Expense</option><option value="income">Income</option></select></div>
+    <div class="fg" id="tx-cat-wrap"><label>Category</label><select id="tx-cat-sel"></select></div>
+    <div class="fg"><label>Date</label><input type="date" id="tx-date"></div>
+    <div class="btn-row">
+      <button class="btn btn-outline" onclick="closeMod('add-tx')">Cancel</button>
+      <button class="btn" onclick="addTx()">Add transaction</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-ov" id="limits-modal">
+  <div class="modal">
+    <div class="modal-hd"><div><div class="modal-title">Card spending limits</div><div class="modal-sub">Enter your custom limits in Pula (P)</div></div><button class="modal-close" onclick="closeMod('limits-modal')">✕</button></div>
+    <div class="fg"><label>Daily spending limit (P)</label><input type="number" id="dlim-custom" placeholder="e.g. 1000" min="0"></div>
+    <div class="fg"><label>Single transaction limit (P)</label><input type="number" id="tlim-custom" placeholder="e.g. 500" min="0"></div>
+    <div class="fg"><label>ATM daily withdrawal limit (P)</label><input type="number" id="atmlim-custom" placeholder="e.g. 2000" min="0"></div>
+    <div class="btn-row">
+      <button class="btn btn-outline" onclick="closeMod('limits-modal')">Cancel</button>
+      <button class="btn" onclick="saveLimits()">Save limits</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-ov" id="upgrade-modal">
+  <div class="modal">
+    <div class="modal-hd"><div><div class="modal-title">Upgrade to Premium ✦</div><div class="modal-sub">Unlock all features</div></div><button class="modal-close" onclick="closeMod('upgrade-modal')">✕</button></div>
+    <div style="background:linear-gradient(135deg,var(--gold3),rgba(200,146,42,.05));border:1.5px solid rgba(200,146,42,.3);border-radius:14px;padding:20px;margin-bottom:20px;">
+      <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:32px;color:var(--gold);margin-bottom:4px;">P80<span style="font-size:14px;font-weight:400;color:var(--text2);">/month</span></div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.7;">Cancel any time. Includes: AI Coach · Motshelo groups · Card management · End-of-month forecasting · Grocery price tracker · Savings challenges</div>
+    </div>
+    <div class="fg"><label>Card number</label><input type="text" placeholder="4532 •••• •••• ••••" maxlength="19"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:15px;">
+      <div class="fg" style="margin-bottom:0;"><label>Expiry</label><input type="text" placeholder="MM/YY" maxlength="5"></div>
+      <div class="fg" style="margin-bottom:0;"><label>CVV</label><input type="text" placeholder="•••" maxlength="3"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-outline" onclick="closeMod('upgrade-modal')">Cancel</button>
+      <button class="btn btn-gold" onclick="confirmUpgrade()">Pay P80 &amp; activate ✦</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-ov" id="downgrade-modal">
+  <div class="modal">
+    <div class="modal-hd"><div><div class="modal-title">Switch to Free plan</div><div class="modal-sub">You'll lose access to premium features</div></div><button class="modal-close" onclick="closeMod('downgrade-modal')">✕</button></div>
+    <div class="alert alert-w" style="margin-bottom:18px;">⚠️ Downgrading will disable: Motshelo, Card Management, AI Coach, Forecasting, and Savings Challenges. Your data will be kept.</div>
+    <div class="btn-row">
+      <button class="btn btn-outline" onclick="closeMod('downgrade-modal')">Keep Premium</button>
+      <button class="btn btn-danger" onclick="confirmDowngrade()">Switch to Free</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-ov" id="invite-modal">
+  <div class="modal" style="text-align:center;">
+    <div class="modal-hd" style="justify-content:flex-end;"><button class="modal-close" onclick="closeMod('invite-modal')">✕</button></div>
+    <div style="font-size:40px;margin-bottom:8px;">🎉</div>
+    <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:18px;color:var(--green);margin-bottom:8px;">Group created!</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:20px;">Share this invite code with your group members. They can join from the Motshelo page → Join with code.</div>
+    <div style="background:var(--green3);border:2px dashed var(--green);border-radius:14px;padding:20px;margin-bottom:20px;">
+      <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;">Invite Code</div>
+      <div id="invite-code-display" style="font-family:'Syne',sans-serif;font-weight:800;font-size:36px;color:var(--green);letter-spacing:.25em;"></div>
+    </div>
+    <button class="btn" onclick="copyInviteCode()">📋 Copy code</button>
+    <div style="margin-top:12px;"><button class="btn btn-outline" onclick="closeMod('invite-modal')">Done</button></div>
+  </div>
+</div>
+
+<script>
+/* ══ STATE ══ */
+const APP = {
+  theme:'light', tier:'free',
+  user:{ name:'', initials:'', email:'', income:0, incomeType:'salary', payday:'25', profile:'general' },
+  card:{ dailyLimit:1000, singleLimit:500, atmLimit:2000 },
+  payMethods:[],
+  categories:[],
+  transactions:[],
+  motshelos:[],
+  selEmoji:'🍽️', selColor:'#2ab5a0',
+  features:{
+    forecasting:{ label:'End-of-month forecasting', sub:'Real-time spend projection', premium:true, on:true },
+    alerts:     { label:'Velocity & overspend alerts', sub:'Proactive push notifications', premium:true, on:true },
+    aicoach:    { label:'AI Coach (Setswana)', sub:'Personalised financial advice', premium:true, on:true },
+    grocery:    { label:'Grocery price comparison', sub:'Compare Gaborone stores daily', premium:true, on:true },
+    motshelo:   { label:'Motshelo / Stokvel tracker', sub:'Group savings circles', premium:true, on:true },
+    card:       { label:'Card management', sub:'Controls, limits and activity', premium:true, on:true },
+    challenges: { label:'Gamified savings challenges', sub:'Streaks and savings goals', premium:true, on:true },
+    smartcat:   { label:'Smart AI categorisation', sub:'Auto-tag your transactions', premium:true, on:true },
+    tips:       { label:'Daily financial literacy tips', sub:'Personalised money education', premium:false, on:true },
+    budget:     { label:'Budget categories', sub:'Customisable spending limits', premium:false, on:true },
+  },
+  cardFrozen:false,
+};
+
+/* ══ UTILS ══ */
+let toastT;
+function toast(msg,dur=2800){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('show'),dur);
+}
+function openMod(id){document.getElementById(id).classList.add('show');}
+function closeMod(id){document.getElementById(id).classList.remove('show');}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function fmt(n){return 'P'+Math.round(n).toLocaleString();}
+function today(){return new Date().toISOString().split('T')[0];}
+
+/* ══ DARK MODE ══ */
+function toggleDark(){
+  APP.theme=APP.theme==='light'?'dark':'light';
+  document.documentElement.setAttribute('data-theme',APP.theme);
+  const dk=APP.theme==='dark';
+  document.querySelectorAll('#dk-tb,#dk-main').forEach(b=>b.textContent=dk?'☀️':'🌙');
+  const ds=document.getElementById('dk-settings'); if(ds) ds.classList.toggle('on',dk);
+  saveApp();
+  toast(dk?'Dark mode on 🌙':'Light mode on ☀️');
+}
+
+/* ══ VALIDATION HELPERS ══ */
+
+function isValidEmail(e){
+  return /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(e);
+}
+function checkStrength(val){
+  const bar=document.getElementById('strength-bar');
+  const fill=document.getElementById('strength-fill');
+  const lbl=document.getElementById('strength-label');
+  if(!bar||!fill||!lbl) return;
+  if(!val){bar.style.display='none';lbl.textContent='';return;}
+  bar.style.display='block';
+  let score=0;
+  if(val.length>=8) score++;
+  if(val.length>=12) score++;
+  if(/[A-Z]/.test(val)) score++;
+  if(/[0-9]/.test(val)) score++;
+  if(/[^A-Za-z0-9]/.test(val)) score++;
+  const levels=[
+    {w:'20%',bg:'var(--red)',txt:'Weak'},
+    {w:'40%',bg:'var(--amber)',txt:'Fair'},
+    {w:'60%',bg:'var(--amber)',txt:'Good'},
+    {w:'80%',bg:'var(--teal)',txt:'Strong'},
+    {w:'100%',bg:'var(--teal)',txt:'Very strong'},
+  ];
+  const l=levels[Math.min(score,4)];
+  fill.style.width=l.w; fill.style.background=l.bg;
+  lbl.textContent=l.txt; lbl.style.color=l.bg;
+}
+function markInvalid(id,msg){
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.style.borderColor='var(--red)';
+  el.style.boxShadow='0 0 0 3px rgba(220,76,76,.15)';
+  toast('⚠️ '+msg,3500);
+  el.focus();
+  el.addEventListener('input',()=>{el.style.borderColor='';el.style.boxShadow='';},{once:true});
+}
+
+/* ══ APP PERSISTENCE ══ */
+function saveApp(){
+  try{
+    const snapshot={
+      tier:APP.tier,
+      theme:APP.theme,
+      user:APP.user,
+      card:APP.card,
+      payMethods:APP.payMethods,
+      categories:APP.categories,
+      transactions:APP.transactions,
+      motshelos:APP.motshelos,
+      features:APP.features,
+    };
+    localStorage.setItem('pw_app_state',JSON.stringify(snapshot));
+  }catch(e){}
+}
+function loadApp(){
+  try{
+    const raw=localStorage.getItem('pw_app_state');
+    if(!raw) return false;
+    const s=JSON.parse(raw);
+    if(s.tier) APP.tier=s.tier;
+    if(s.theme) APP.theme=s.theme;
+    if(s.user) Object.assign(APP.user,s.user);
+    if(s.card) Object.assign(APP.card,s.card);
+    if(s.payMethods) APP.payMethods=s.payMethods;
+    if(s.categories) APP.categories=s.categories;
+    if(s.transactions) APP.transactions=s.transactions;
+    if(s.motshelos) APP.motshelos=s.motshelos;
+    if(s.features){
+      Object.keys(APP.features).forEach(k=>{
+        if(s.features[k]!==undefined) APP.features[k].on=s.features[k].on;
+      });
+    }
+    return !!(s.user&&s.user.name&&s.user.name!=='');
+  }catch(e){return false;}
+}
+
+/* ══ SAVED ACCOUNTS (localStorage) ══ */
+function getSavedAccounts(){
+  try { return JSON.parse(localStorage.getItem('pw_accounts')||'[]'); }
+  catch(e){ return []; }
+}
+function saveAccount(name,email,initials){
+  const accounts=getSavedAccounts();
+  const existing=accounts.findIndex(a=>a.email===email);
+  const entry={name,email,initials,lastLogin:new Date().toISOString()};
+  if(existing>=0) accounts[existing]=entry;
+  else accounts.unshift(entry);
+  localStorage.setItem('pw_accounts',JSON.stringify(accounts.slice(0,5)));
+  renderSavedAccounts();
+}
+function removeSavedAccount(email,e){
+  e.stopPropagation();
+  const accounts=getSavedAccounts().filter(a=>a.email!==email);
+  localStorage.setItem('pw_accounts',JSON.stringify(accounts));
+  renderSavedAccounts();
+  toast('Account removed from this device');
+}
+function renderSavedAccounts(){
+  const accounts=getSavedAccounts();
+  const section=document.getElementById('saved-accounts-section');
+  const list=document.getElementById('saved-accounts-list');
+  if(!list) return;
+  if(accounts.length===0){
+    if(section) section.style.display='none';
+    return;
+  }
+  if(section) section.style.display='block';
+  list.innerHTML=accounts.map(a=>`
+    <div class="saved-acct-card" onclick="quickSignIn('${a.email}','${a.name}','${a.initials}')">
+      <div class="saved-acct-av">${a.initials}</div>
+      <div class="saved-acct-info">
+        <div class="saved-acct-name">${a.name}</div>
+        <div class="saved-acct-email">${a.email}</div>
+      </div>
+      <div class="saved-acct-arrow">›</div>
+      <button class="saved-acct-del" onclick="removeSavedAccount('${a.email}',event)" title="Remove">✕</button>
+    </div>
+  `).join('');
+}
+function quickSignIn(email,name,initials){
+  APP.user.name=name; APP.user.email=email; APP.user.initials=initials;
+  saveAccount(name,email,initials);
+  APP.user.income=APP.user.income||3000;
+  APP.user.incomeType=APP.user.incomeType||'salary';
+  APP.user.payday=APP.user.payday||'25';
+  APP.tier=APP.tier||'free';
+  saveApp();
+  initDash();
+  showScreen('dash-screen');
+  setTimeout(()=>toast('Welcome back, '+name+' 👋'),300);
+}
+function showCreateView(){
+  document.getElementById('view-signin').style.display='none';
+  document.getElementById('view-create').style.display='flex';
+}
+function showSigninView(){
+  document.getElementById('view-create').style.display='none';
+  document.getElementById('view-signin').style.display='flex';
+  renderSavedAccounts();
+}
+
+/* ══ AUTH ══ */
+function doLogin(){
+  const e=document.getElementById('li-email').value.trim();
+  const p=document.getElementById('li-pass').value;
+  if(!e){toast('Please enter your email address');return;}
+  if(!isValidEmail(e)){markInvalid('li-email','Please enter a valid email (e.g. name@example.com)');return;}
+  if(!p){toast('Please enter your password');return;}
+  if(p.length<6){markInvalid('li-pass','Password must be at least 6 characters');return;}
+  APP.user.email=e;
+  APP.user.name=e.split('@')[0].replace(/[._]/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+  APP.user.initials=APP.user.name.split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);
+  saveAccount(APP.user.name,e,APP.user.initials);
+  goToOnboard();
+}
+function doSignup(){
+  const n=document.getElementById('su-name').value.trim();
+  const e=document.getElementById('su-email').value.trim();
+  const p=document.getElementById('su-pass').value;
+  if(!n){markInvalid('su-name','Please enter your full name');return;}
+  if(!e){markInvalid('su-email','Please enter your email address');return;}
+  if(!isValidEmail(e)){markInvalid('su-email','Please enter a valid email (e.g. name@example.com)');return;}
+  if(!p||p.length<8){markInvalid('su-pass','Password must be at least 8 characters');return;}
+  APP.user.name=n; APP.user.email=e;
+  APP.user.initials=n.split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);
+  saveAccount(n,e,APP.user.initials);
+  goToOnboard();
+}
+function googleSignIn(){
+  APP.user.name='Keamo Mothibi'; APP.user.email='keamo@gmail.com';
+  APP.user.initials='KM';
+  saveAccount('Keamo Mothibi','keamo@gmail.com','KM');
+  goToOnboard();
+}
+function goToOnboard(){showScreen('onboard-screen');}
+function signOut(){
+  localStorage.removeItem('pw_app_state');
+  APP.transactions=[];APP.categories=[];APP.motshelos=[];
+  APP.user={name:'',initials:'',email:'',income:0,incomeType:'salary',payday:'25',profile:'general'};
+  APP.tier='free';
+  APP.card={dailyLimit:1000,singleLimit:500,atmLimit:2000};
+  const le=document.getElementById('li-email'); if(le) le.value='';
+  const lp=document.getElementById('li-pass'); if(lp) lp.value='';
+  document.getElementById('view-signin').style.display='flex';
+  document.getElementById('view-create').style.display='none';
+  renderSavedAccounts();
+  showScreen('auth-screen');
+}
+
+/* ══ ONBOARDING ══ */
+let obStep=1, obProfile='general', obIncome='salary', obPlan='free';
+const obPayMethods=new Set();
+
+function goStep(n){
+  if(n>1&&obStep===1){
+    const nm=document.getElementById('ob-name').value.trim();
+    if(!nm){toast('Please enter your name first 👋');return;}
+    APP.user.name=nm;
+    APP.user.initials=nm.split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);
+  }
+  if(n>2&&obStep===2){
+    const inc=parseFloat(document.getElementById('ob-income').value)||0;
+    if(inc<=0){toast('Please enter your monthly income (P)');return;}
+    APP.user.income=inc;
+    APP.user.payday=document.getElementById('ob-payday').value;
+  }
+  if(n===5){
+    renderObFeatures();
+  }
+
+  document.getElementById('s'+obStep).classList.remove('active');
+  obStep=n;
+  document.getElementById('s'+n).classList.add('active');
+  for(let i=1;i<=5;i++) document.getElementById('d'+i).classList.toggle('done',i<=n);
+}
+
+function pick(el,type,val){
+  el.closest('.opt-grid').querySelectorAll('.opt-card').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+  if(type==='profile') obProfile=val;
+  if(type==='income') obIncome=val;
+}
+function togPay(el,key){el.classList.toggle('sel');obPayMethods.has(key)?obPayMethods.delete(key):obPayMethods.add(key);}
+function pickPlan(p){
+  obPlan=p;
+  document.getElementById('ob-free').classList.toggle('sel',p==='free');
+  document.getElementById('ob-prem').classList.toggle('sel',p==='premium');
+  renderObFeatures();
+}
+
+function renderObFeatures(){
+  const el=document.getElementById('ob-feat-list');
+  if(!el) return;
+  el.innerHTML='';
+  Object.entries(APP.features).forEach(([k,f])=>{
+    const locked=f.premium&&obPlan==='free';
+    const row=document.createElement('div');
+    row.className='feat-row'+(locked?' feat-locked':'');
+    row.innerHTML=`<div style="flex:1;min-width:0;">
+      <div class="feat-lbl">${f.label}${locked?' <span class="pill pill-gd" style="font-size:9px;">Pro</span>':''}</div>
+      <div class="feat-sub">${f.sub}${locked?' · Requires Premium':''}</div>
+    </div>
+    <button class="toggle${f.on&&!locked?' on':''}" onclick="if(!${locked}){APP.features['${k}'].on=!APP.features['${k}'].on;this.classList.toggle('on');}else{toast('🔒 Upgrade to Premium to enable this');}"></button>`;
+    el.appendChild(row);
+  });
+}
+
+function finishOnboard(){
+  APP.user.profile=obProfile;
+  APP.user.incomeType=obIncome;
+  APP.tier=obPlan;
+  APP.payMethods=Array.from(obPayMethods);
+
+  const nm=document.getElementById('ob-name');
+  if(nm&&nm.value.trim()){
+    APP.user.name=nm.value.trim();
+    APP.user.initials=APP.user.name.split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);
+  }
+  if(!APP.user.name||APP.user.name.trim()===''){APP.user.name='there';APP.user.initials='?';}
+
+  const incEl=document.getElementById('ob-income');
+  if(incEl&&incEl.value) APP.user.income=parseFloat(incEl.value)||0;
+
+  if(APP.tier==='free'){
+    Object.entries(APP.features).forEach(([k,f])=>{if(f.premium) f.on=false;});
+  }
+
+  const txDate=document.getElementById('tx-date');
+  if(txDate) txDate.value=today();
+
+  saveApp();
+  initDash();
+  showScreen('dash-screen');
+  setTimeout(()=>toast('Welcome to PocketWise, '+APP.user.name+'! 🎉'),300);
+}
+
+/* ══ DASHBOARD INIT ══ */
+const navDefs=[
+  {id:'dash',    icon:'📊', label:'Dashboard',           sec:'Main',    premium:false},
+  {id:'budget',  icon:'🎯', label:'Budget & Categories',  sec:null,      premium:false},
+  {id:'txns',    icon:'💸', label:'Transactions',         sec:null,      premium:false},
+  {id:'motshelo',icon:'👥', label:'Motshelo',             sec:null,      premium:true },
+  {id:'card',    icon:'💳', label:'My Card',              sec:null,      premium:true },
+  {id:'subscription',icon:'✦',label:'Plan & Features',   sec:'Account', premium:false},
+  {id:'settings',icon:'⚙️', label:'Settings',             sec:null,      premium:false},
+];
+const bnavDefs=[
+  {id:'dash',    icon:'📊', label:'Home'},
+  {id:'motshelo',icon:'👥', label:'Motshelo'},
+  {id:'card',    icon:'💳', label:'Card'},
+  {id:'txns',    icon:'💸', label:'Spend'},
+  {id:'settings',icon:'⚙️', label:'Settings'},
+];
+
+function initDash(){
+  const name=APP.user.name||'there';
+  const h=new Date().getHours();
+  const greet=h<12?'Good morning':h<17?'Good afternoon':'Good evening';
+  document.getElementById('dash-greet').textContent=greet+', '+name+' 👋';
+
+  const days=getDaysLeft();
+  document.getElementById('dash-sub').textContent=getMonthLabel()+' · '+days+' days left in your budget cycle · Payday: '+APP.user.payday+'th';
+  document.getElementById('dash-av').textContent=APP.user.initials||'?';
+
+  const sn=document.getElementById('set-name'); if(sn) sn.value=APP.user.name;
+  const se=document.getElementById('set-email'); if(se) se.value=APP.user.email||'';
+  const si=document.getElementById('set-income'); if(si) si.value=APP.user.income||'';
+  const sp=document.getElementById('set-payday'); if(sp) sp.value=APP.user.payday||'25';
+
+  document.getElementById('card-nm').textContent=APP.user.name;
+  document.getElementById('cp-holder').textContent=APP.user.name;
+
+  buildNav();
+  applyTier();
+  renderStats();
+  renderCats();
+  renderTxList();
+  renderLinkedAccounts();
+  updateTierBadges();
+  updatePlanPill();
+  renderFeatureToggles();
+}
+
+function getMonthLabel(){return new Date().toLocaleString('default',{month:'long',year:'numeric'});}
+function getDaysLeft(){const now=new Date();const last=new Date(now.getFullYear(),now.getMonth()+1,0);return last.getDate()-now.getDate();}
+
+function renderStats(){
+  const inc=APP.user.income||0;
+  const totalSpent=APP.transactions.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+  const totalIncome=APP.transactions.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+  const spent=totalSpent;
+  const rem=Math.max(0,inc-spent);
+  const days=getDaysLeft();
+  const pct=inc>0?Math.round(spent/inc*100):0;
+
+  document.getElementById('s-income').textContent=fmt(inc);
+  document.getElementById('s-income-sub').textContent=APP.user.incomeType==='salary'?'Monthly salary':APP.user.incomeType==='allowance'?'Allowance':APP.user.incomeType==='bursary'?'Bursary':'Income';
+  document.getElementById('s-spent').textContent=fmt(spent);
+  document.getElementById('s-spent-sub').textContent=pct+'% of income used';
+  document.getElementById('s-rem').textContent=fmt(rem);
+  document.getElementById('s-rem-sub').textContent=days>0?'≈ '+fmt(rem/days)+'/day left':'End of month';
+
+  const saved=totalIncome>0?totalIncome-spent:0;
+  document.getElementById('s-saved').textContent=saved>=0?fmt(saved):'—';
+
+  const cardBal=rem;
+  document.getElementById('card-bal').textContent=fmt(cardBal);
+  document.getElementById('cp-bal').textContent=fmt(cardBal);
+
+  if(APP.features.forecasting?.on&&APP.tier==='premium'){
+    const fc=document.getElementById('dash-forecast-card');
+    const fcc=document.getElementById('dash-forecast-content');
+    if(fc&&fcc){
+      fc.style.display='block';
+      const proj=days>0?spent+(spent/Math.max(1,30-days))*days:spent;
+      const overUnder=inc-proj;
+      fcc.innerHTML=overUnder>=0
+        ?`<div class="alert alert-g">✅ On track — projected to have <strong>${fmt(overUnder)}</strong> left by month end.</div>`
+        :`<div class="alert alert-r">⚠️ Spending fast — projected to overspend by <strong>${fmt(Math.abs(overUnder))}</strong> this month. Consider cutting discretionary spend.</div>`;
+    }
+  }
+}
+
+/* ══ NAV ══ */
+function buildNav(){
+  const nav=document.getElementById('sb-nav');
+  nav.innerHTML='';
+  let lastSec='';
+  navDefs.forEach(item=>{
+    if(item.sec&&item.sec!==lastSec){
+      nav.innerHTML+=`<div class="nav-sec">${item.sec}</div>`;
+      lastSec=item.sec;
+    }
+    const locked=item.premium&&APP.tier!=='premium';
+    const div=document.createElement('div');
+    div.className='nav-item'+(item.id==='dash'?' active':'')+(locked?' locked-nav':'');
+    div.setAttribute('data-pg',item.id);
+    div.innerHTML=`<div class="nav-icon">${item.icon}</div>${item.label}${locked?'<span class="lock-badge">Pro</span>':''}`;
+    div.onclick=()=>locked?toast('🔒 Requires Premium — tap Plan & Features to upgrade'):showPage(item.id,div);
+    nav.appendChild(div);
+  });
+  nav.innerHTML+=`<div class="nav-item" onclick="signOut()"><div class="nav-icon">🚪</div>Sign out</div>`;
+  buildBnav();
+}
+
+function buildBnav(){
+  const bn=document.getElementById('bnav');
+  bn.innerHTML='';
+  bnavDefs.forEach((item,i)=>{
+    const navDef=navDefs.find(n=>n.id===item.id);
+    const locked=navDef?.premium&&APP.tier!=='premium';
+    const div=document.createElement('div');
+    div.className='bnav-item'+(i===0?' active':'');
+    div.innerHTML=`<div class="bnav-icon">${item.icon}</div><div class="bnav-lbl">${item.label}</div>`;
+    div.onclick=()=>{
+      if(locked){toast('🔒 Requires Premium — upgrade in Plan & Features');return;}
+      document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
       div.classList.add('active');
-      showPage(item.id, null);  // Pass null for navEl for bottom nav
+      showPage(item.id,null);
     };
     bn.appendChild(div);
   });
 }
+
+function showPage(id,navEl){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const pg=document.getElementById('page-'+id);
+  if(pg) pg.classList.add('active');
+  if(navEl){
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+    navEl.classList.add('active');
+  } else {
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.getAttribute('data-pg')===id));
+  }
+  closeSb();
+  if(id==='budget') renderCats();
+  if(id==='subscription'){renderFeatureToggles();updateTierBadges();}
+  if(id==='txns') renderTxList();
+  if(id==='motshelo') renderMotshelos();
+}
+
+function openSb(){document.getElementById('sb').classList.add('open');document.getElementById('ov').classList.add('show');}
+function closeSb(){document.getElementById('sb').classList.remove('open');document.getElementById('ov').classList.remove('show');}
+
+/* ══ TIER ══ */
+function applyTier(){
+  const isPrem=APP.tier==='premium';
+
+  const dw=document.getElementById('debit-wrap');
+  if(dw) dw.style.display=isPrem&&APP.features.card?.on?'block':'none';
+
+  const mc=document.getElementById('dash-motshelo-card');
+  if(mc) mc.style.display=isPrem&&APP.features.motshelo?.on?'block':'none';
+
+  const cardSub=document.getElementById('card-page-sub');
+  const cp=document.getElementById('cp-brand');
+  if(APP.payMethods.includes('fnb')){
+    if(cardSub) cardSub.textContent='FNB Botswana · Gold Account';
+    if(cp) cp.textContent='FNB GOLD';
+    const cn=document.getElementById('cp-num'); if(cn) cn.textContent='4532 •••• •••• 4521';
+  } else if(APP.payMethods.includes('stanbic')){
+    if(cardSub) cardSub.textContent='Stanbic · Cheque Account';
+    if(cp) cp.textContent='STANBIC';
+    const cn=document.getElementById('cp-num'); if(cn) cn.textContent='6011 •••• •••• 8832';
+  } else {
+    if(cardSub) cardSub.textContent='No bank card linked · Add one in Settings';
+  }
+  const dlEl=document.getElementById('dlim-custom'); if(dlEl) dlEl.value=APP.card.dailyLimit;
+  const tlEl=document.getElementById('tlim-custom'); if(tlEl) tlEl.value=APP.card.singleLimit;
+  const alEl=document.getElementById('atmlim-custom'); if(alEl) alEl.value=APP.card.atmLimit;
+  const atmLbl=document.getElementById('atm-limit-label'); if(atmLbl) atmLbl.textContent='Daily limit: '+fmt(APP.card.atmLimit);
+  renderCardActivity();
+}
+
+function updatePlanPill(){
+  const isPrem=APP.tier==='premium';
+  document.getElementById('sb-plan-nm').textContent=isPrem?'Premium ✦':'Free';
+  document.getElementById('sb-plan-nm').style.color=isPrem?'var(--gold)':'var(--green)';
+  document.getElementById('sb-plan-cta').textContent=isPrem?'Manage subscription →':'Upgrade to Premium →';
+}
+
+function updateTierBadges(){
+  const isPrem=APP.tier==='premium';
+  document.getElementById('badge-free').style.display=!isPrem?'block':'none';
+  document.getElementById('badge-prem').style.display=isPrem?'block':'none';
+  document.getElementById('t-free').classList.toggle('t-active',!isPrem);
+  document.getElementById('t-prem').classList.toggle('t-active-gold',isPrem);
+}
+
+function changeTier(t){
+  if(t===APP.tier){toast(t==='premium'?'You\'re already on Premium ✦':'You\'re already on the Free plan');return;}
+  if(t==='premium'){
+    openMod('upgrade-modal');
+  } else {
+    openMod('downgrade-modal');
+  }
+}
+
+function confirmUpgrade(){
+  closeMod('upgrade-modal');
+  toast('Processing payment…');
+  setTimeout(()=>{
+    APP.tier='premium';
+    Object.keys(APP.features).forEach(k=>APP.features[k].on=true);
+    saveApp();
+    
+    // CRITICAL FIX: Rebuild navigation and refresh UI completely
+    buildNav();  // Rebuilds navigation with premium features unlocked
+    applyTier(); 
+    renderStats(); 
+    updatePlanPill(); 
+    updateTierBadges(); 
+    renderFeatureToggles();
+    
+    // Force remove locked classes from all nav items
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.classList.remove('locked-nav');
+      const lockBadge = item.querySelector('.lock-badge');
+      if(lockBadge) lockBadge.remove();
+    });
+    
+    // Show card widget if enabled
+    const debitWrap = document.getElementById('debit-wrap');
+    if(debitWrap && APP.features.card?.on) debitWrap.style.display = 'block';
+    
+    // Refresh current page content
+    const activePage = document.querySelector('.page.active');
+    if(activePage && activePage.id === 'page-dash') {
+      renderStats();
+      renderCats();
+      renderTxList();
+    }
+    
+    toast('🎉 Welcome to Premium ✦ — all features unlocked!',3500);
+  },1200);
+}
+
+function confirmDowngrade(){
+  closeMod('downgrade-modal');
+  APP.tier='free';
+  Object.entries(APP.features).forEach(([k,f])=>{if(f.premium) f.on=false;});
+  saveApp();
+  buildNav(); applyTier(); renderStats(); updatePlanPill(); updateTierBadges(); renderFeatureToggles();
+  toast('Switched to Free plan');
+}
+
+function renderFeatureToggles(){
+  const el=document.getElementById('feat-toggle-list'); if(!el) return;
+  el.innerHTML='';
+  Object.entries(APP.features).forEach(([k,f])=>{
+    const locked=f.premium&&APP.tier==='free';
+    const row=document.createElement('div');
+    row.className='feat-row'+(locked?' feat-locked':'');
+    row.innerHTML=`<div style="flex:1;">
+      <div class="feat-lbl">${f.label}${locked?' <span class="pill pill-gd" style="font-size:9px;">Pro</span>':''}</div>
+      <div class="feat-sub">${f.sub}</div>
+    </div>
+    <button class="toggle${f.on?' on':''}" onclick="toggleFeat('${k}',this)"></button>`;
+    el.appendChild(row);
+  });
+}
+
+function toggleFeat(k,btn){
+  if(APP.features[k].premium&&APP.tier==='free'){toast('🔒 Upgrade to Premium to use this feature');return;}
+  APP.features[k].on=!APP.features[k].on;
+  btn.classList.toggle('on');
+  saveApp();
+  applyTier(); renderStats();
+  toast(APP.features[k].label+' '+(APP.features[k].on?'enabled ✓':'disabled'));
+}
+
+/* ══ CATEGORIES ══ */
+function pickEmoji(el,e){document.querySelectorAll('.emoji-opt').forEach(x=>x.classList.remove('sel'));el.classList.add('sel');APP.selEmoji=e;}
+function pickColor(el,c){document.querySelectorAll('.col-dot').forEach(x=>x.classList.remove('sel'));el.classList.add('sel');APP.selColor=c;}
+
+function addCat(){
+  const nm=document.getElementById('cat-name-i').value.trim();
+  const lim=parseFloat(document.getElementById('cat-lim-i').value)||0;
+  if(!nm){toast('Please enter a category name');return;}
+  if(APP.categories.find(c=>c.name.toLowerCase()===nm.toLowerCase())){toast('Category already exists');return;}
+  APP.categories.push({name:nm,icon:APP.selEmoji,color:APP.selColor,limit:lim,spent:0});
+  document.getElementById('cat-name-i').value='';
+  document.getElementById('cat-lim-i').value='';
+  saveApp();
+  renderCats();
+  renderTxCatSelect();
+  toast('"'+nm+'" added ✓');
+}
+
+function deleteCat(i){
+  const nm=APP.categories[i].name;
+  APP.categories.splice(i,1);
+  saveApp();
+  renderCats();
+  renderTxCatSelect();
+  toast('"'+nm+'" removed');
+}
+
+function renderCats(){
+  const listEl=document.getElementById('cat-list-render');
+  const ovEl=document.getElementById('cat-overview');
+  const dashEl=document.getElementById('dash-cats');
+  const cnt=document.getElementById('cat-count');
+
+  if(cnt) cnt.textContent=APP.categories.length;
+
+  if(listEl){
+    listEl.innerHTML=APP.categories.length
+      ? APP.categories.map((c,i)=>`
+        <div class="cat-list-item">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:10px;height:10px;border-radius:50%;background:${c.color};flex-shrink:0;"></div>
+            <span style="font-size:17px;">${c.icon}</span>
+            <div><div style="font-size:13px;font-weight:500;">${c.name}</div><div style="font-size:11px;color:var(--text2);">Limit: ${fmt(c.limit)} · Spent: ${fmt(c.spent)}</div></div>
+          </div>
+          <button class="btn-icon" onclick="deleteCat(${i})" style="color:var(--red);">🗑</button>
+        </div>`).join('')
+      : '<div style="color:var(--text2);font-size:13px;text-align:center;padding:16px;">No categories yet. Add one on the left.</div>';
+  }
+
+  const catBars=cats=>cats.length
+    ? cats.map(c=>{
+        const pct=c.limit>0?Math.min(100,Math.round(c.spent/c.limit*100)):0;
+        const over=c.limit>0&&c.spent>c.limit;
+        return `<div class="cat-item"><div class="cat-hd"><div class="cat-nm"><div class="cdot" style="background:${c.color};"></div>${c.icon} ${c.name}</div><div class="cat-amt"><strong>P${Math.round(c.spent)}</strong> / P${Math.round(c.limit)}</div></div><div class="bar"><div class="bar-fill" style="width:${pct}%;background:${over?'var(--red)':c.color};"></div></div></div>`;
+      }).join('')
+    : '<div style="color:var(--text2);font-size:13px;text-align:center;padding:12px;">No categories yet.</div>';
+
+  if(ovEl) ovEl.innerHTML=catBars(APP.categories);
+  if(dashEl) dashEl.innerHTML=catBars(APP.categories.slice(0,5));
+}
+
+/* ══ TRANSACTIONS ══ */
+function renderTxCatSelect(){
+  const sel=document.getElementById('tx-cat-sel'); if(!sel) return;
+  sel.innerHTML=APP.categories.map(c=>`<option value="${c.name}">${c.icon} ${c.name}</option>`).join('');
+  const filterSel=document.getElementById('tx-filter-cat'); if(!filterSel) return;
+  filterSel.innerHTML='<option value="">All categories</option>'+APP.categories.map(c=>`<option value="${c.name}">${c.icon} ${c.name}</option>`).join('');
+}
+
+function toggleTxType(sel){document.getElementById('tx-cat-wrap').style.display=sel.value==='income'?'none':'block';}
+
+function addTx(){
+  const desc=document.getElementById('tx-desc').value.trim();
+  const amt=parseFloat(document.getElementById('tx-amt').value)||0;
+  const type=document.getElementById('tx-type').value;
+  const cat=type==='expense'?(document.getElementById('tx-cat-sel').value||'General'):'Income';
+  const date=document.getElementById('tx-date').value||today();
+  if(!desc){toast('Please enter a description');return;}
+  if(amt<=0){toast('Please enter a valid amount');return;}
+
+  const tx={id:Date.now(),desc,amount:amt,type,cat,date};
+  APP.transactions.unshift(tx);
+
+  if(type==='expense'){
+    const c=APP.categories.find(x=>x.name===cat);
+    if(c) c.spent=parseFloat((c.spent+amt).toFixed(2));
+  }
+
+  closeMod('add-tx');
+  document.getElementById('tx-desc').value='';
+  document.getElementById('tx-amt').value='';
+  saveApp();
+  renderTxList(); renderStats(); renderCats();
+  renderTxCatSelect();
+  toast('Transaction added ✓');
+}
+
+function renderTxList(){
+  const el=document.getElementById('tx-list-card'); if(!el) return;
+  const search=(document.getElementById('tx-search')?.value||'').toLowerCase();
+  const catF=document.getElementById('tx-filter-cat')?.value||'';
+  const typeF=document.getElementById('tx-filter-type')?.value||'';
+  const filtered=APP.transactions.filter(t=>{
+    const ms=search?t.desc.toLowerCase().includes(search)||t.cat.toLowerCase().includes(search):true;
+    const mc=catF?t.cat===catF:true;
+    const mt=typeF?t.type===typeF:true;
+    return ms&&mc&&mt;
+  });
+  el.innerHTML=filtered.length
+    ? filtered.map(t=>{
+        const icon=APP.categories.find(c=>c.name===t.cat)?.icon||(t.type==='income'?'💰':'💳');
+        const color=APP.categories.find(c=>c.name===t.cat)?.color||'#888';
+        return `<div class="tx-item">
+          <div class="tx-icon" style="background:${color}22;">${icon}</div>
+          <div class="tx-info"><div class="tx-nm">${t.desc}</div><div class="tx-meta">${t.cat} · ${t.date}</div></div>
+          <div class="tx-amt ${t.type==='income'?'inc':'out'}">${t.type==='income'?'+':'−'}${fmt(t.amount)}</div>
+        </div>`;
+      }).join('')
+    : '<div style="color:var(--text2);font-size:13px;text-align:center;padding:20px;">No transactions found.</div>';
+
+  const dashTx=document.getElementById('dash-tx-list');
+  if(dashTx){
+    dashTx.innerHTML=APP.transactions.slice(0,4).length
+      ? APP.transactions.slice(0,4).map(t=>{
+          const icon=APP.categories.find(c=>c.name===t.cat)?.icon||(t.type==='income'?'💰':'💳');
+          const color=APP.categories.find(c=>c.name===t.cat)?.color||'#888';
+          return `<div class="tx-item">
+            <div class="tx-icon" style="background:${color}22;">${icon}</div>
+            <div class="tx-info"><div class="tx-nm">${t.desc}</div><div class="tx-meta">${t.cat} · ${t.date}</div></div>
+            <div class="tx-amt ${t.type==='income'?'inc':'out'}">${t.type==='income'?'+':'−'}${fmt(t.amount)}</div>
+          </div>`;
+        }).join('')
+      : '<div style="color:var(--text2);font-size:13px;text-align:center;padding:16px;">No transactions yet — add your first one!</div>';
+  }
+}
+
+function filterTx(){renderTxList();}
+
+/* ══ MOTSHELO ══ */
+
+function switchMTab(tab){
+  document.getElementById('mtab-create').classList.toggle('active',tab==='create');
+  document.getElementById('mtab-join').classList.toggle('active',tab==='join');
+  document.getElementById('mpanel-create').style.display=tab==='create'?'block':'none';
+  document.getElementById('mpanel-join').style.display=tab==='join'?'block':'none';
+}
+
+function getSharedGroups(){
+  try{ return JSON.parse(localStorage.getItem('pw_motshelo_groups')||'{}'); }
+  catch(e){ return {}; }
+}
+function saveSharedGroups(groups){
+  localStorage.setItem('pw_motshelo_groups',JSON.stringify(groups));
+}
+
+function genCode(){
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return Array.from({length:6},()=>chars[Math.floor(Math.random()*chars.length)]).join('');
+}
+
+let lastInviteCode='';
+function copyInviteCode(){
+  if(navigator.clipboard){navigator.clipboard.writeText(lastInviteCode).then(()=>toast('Invite code copied! ✓'));}
+  else{toast('Code: '+lastInviteCode+' — copy it manually');}
+}
+
+function createMotshelo(){
+  const nm=document.getElementById('m-nm').value.trim();
+  const mem=parseInt(document.getElementById('m-mem').value)||0;
+  const contrib=parseFloat(document.getElementById('m-ctrib').value)||0;
+  const pos=parseInt(document.getElementById('m-pos').value)||1;
+  const cycle=parseInt(document.getElementById('m-cycle').value)||mem;
+  if(!nm){toast('Please enter a group name');return;}
+  if(mem<2){toast('Group must have at least 2 members');return;}
+  if(contrib<=0){toast('Please enter your contribution amount');return;}
+
+  const code=genCode();
+  const payout=contrib*mem;
+  const payoutMonth=new Date();
+  payoutMonth.setMonth(payoutMonth.getMonth()+pos);
+  const payoutDateStr=payoutMonth.toLocaleString('default',{month:'short',year:'numeric'});
+
+  const groups=getSharedGroups();
+  groups[code]={
+    code, name:nm, maxMembers:mem, contrib, cycle, payout,
+    createdBy:APP.user.name||'You', createdAt:new Date().toISOString(),
+    members:[{name:APP.user.name||'You',email:APP.user.email,pos,joined:new Date().toISOString(),saved:contrib}],
+    totalSaved:contrib,
+  };
+  saveSharedGroups(groups);
+
+  APP.motshelos.push({name:nm,members:1,maxMembers:mem,contrib,pos,cycle,payout,icon:'👥',saved:contrib,payoutDate:payoutDateStr,code,isOwner:true});
+  closeMod('new-motshelo');
+  ['m-nm','m-mem','m-ctrib','m-pos','m-cycle'].forEach(id=>document.getElementById(id).value='');
+  saveApp();
+
+  lastInviteCode=code;
+  document.getElementById('invite-code-display').textContent=code;
+  openMod('invite-modal');
+
+  renderMotshelos(); renderMostheloStats();
+}
+
+function joinMotshelo(){
+  const code=(document.getElementById('m-join-code').value||'').toUpperCase().trim();
+  const pos=parseInt(document.getElementById('m-join-pos').value)||1;
+  if(!code||code.length<4){toast('Please enter a valid invite code');return;}
+
+  const groups=getSharedGroups();
+  const grp=groups[code];
+  if(!grp){toast('❌ Group not found — check the code and try again');return;}
+
+  if(APP.motshelos.find(m=>m.code===code)){toast('You are already in this group!');return;}
+
+  if(grp.members.length>=grp.maxMembers){toast('This group is full ('+grp.maxMembers+' members)');return;}
+
+  grp.members.push({name:APP.user.name||'You',email:APP.user.email,pos,joined:new Date().toISOString(),saved:0});
+  grp.totalSaved=(grp.totalSaved||0);
+  saveSharedGroups(groups);
+
+  const payoutMonth=new Date();
+  payoutMonth.setMonth(payoutMonth.getMonth()+pos);
+  APP.motshelos.push({
+    name:grp.name, members:grp.members.length, maxMembers:grp.maxMembers,
+    contrib:grp.contrib, pos, cycle:grp.cycle, payout:grp.payout,
+    icon:'👥', saved:0, payoutDate:payoutMonth.toLocaleString('default',{month:'short',year:'numeric'}),
+    code, isOwner:false,
+  });
+
+  closeMod('new-motshelo');
+  document.getElementById('m-join-code').value='';
+  document.getElementById('m-join-pos').value='';
+  saveApp();
+  renderMotshelos(); renderMostheloStats();
+  toast('Joined "'+grp.name+'" successfully! 🎉');
+}
+
+function renderMotshelos(){
+  const el=document.getElementById('motshelo-list'); if(!el) return;
+  renderMostheloStats();
+  el.innerHTML=APP.motshelos.length
+    ? APP.motshelos.map((m,i)=>{
+        const pct=Math.min(100,Math.round(m.saved/(m.contrib*m.cycle)*100));
+        const grp=getSharedGroups()[m.code];
+        const liveMem=grp?grp.members.length:m.members;
+        const memberList=grp?grp.members.map(mb=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);">
+          <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--teal));display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;">${(mb.name||'?').slice(0,2).toUpperCase()}</div>
+          <div style="flex:1;font-size:12px;font-weight:500;">${mb.name||'Unknown'}</div>
+          <div style="font-size:11px;color:var(--text2);">Pos #${mb.pos}</div>
+          <div style="font-size:12px;font-weight:600;color:var(--teal);">${fmt(mb.saved||0)}</div>
+        </div>`).join(''):'';
+        return `<div class="motshelo-card">
+          <div class="m-hd">
+            <div class="m-icon">${m.icon}</div>
+            <div style="flex:1;min-width:0;"><div class="m-name">${m.name}</div><div class="m-members">${liveMem}/${m.maxMembers||m.members} members · ${m.isOwner?'You created this':'Joined'}</div></div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+              <span class="pill pill-g">Pos #${m.pos}</span>
+              ${m.code?`<span class="pill" style="background:var(--bg3);color:var(--text2);font-family:monospace;font-size:10px;letter-spacing:.1em;cursor:pointer;" onclick="copyGroupCode('${m.code}')" title="Click to copy">${m.code}</span>`:''}
+            </div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span>Cycle progress</span><span>${Math.round(pct)}%</span></div>
+          <div class="prog"><div class="prog-fill" style="width:${pct}%;"></div></div>
+          <div class="m-stats">
+            <div class="m-stat"><div class="m-sv">${fmt(m.contrib)}</div><div class="m-sl">Contribution/mo</div></div>
+            <div class="m-stat"><div class="m-sv">${fmt(m.saved)}</div><div class="m-sl">My savings</div></div>
+            <div class="m-stat"><div class="m-sv">${fmt(m.payout)}</div><div class="m-sl">My payout</div></div>
+          </div>
+          <div class="alert alert-g" style="margin-top:12px;margin-bottom:8px;">🎉 Your payout: <strong>${m.payoutDate}</strong></div>
+          ${memberList?`<details style="margin-bottom:8px;"><summary style="font-size:12px;font-weight:600;color:var(--green);cursor:pointer;padding:6px 0;">👥 Group members (${liveMem})</summary><div style="margin-top:8px;">${memberList}</div></details>`:''}
+          <div class="m-actions">
+            <button class="m-btn" onclick="doContrib(${i})">💰 Contribute ${fmt(m.contrib)}</button>
+            ${m.isOwner?`<button class="m-btn gold" onclick="showInviteCode('${m.code}')">🔗 Invite code</button>`:''}
+            <button class="m-btn" style="background:rgba(220,76,76,.1);color:var(--red);border-color:rgba(220,76,76,.2);max-width:36px;padding:0;display:flex;align-items:center;justify-content:center;" onclick="deleteMotshelo(${i})">🗑</button>
+          </div>
+        </div>`;
+      }).join('')
+    : '<div style="color:var(--text2);font-size:13px;text-align:center;padding:30px;background:var(--bg2);border-radius:var(--r);border:1.5px solid var(--border);">No Motshelo groups yet.<br><span style="font-size:12px;">Create your first group or join one with an invite code.</span></div>';
+
+  const preview=document.getElementById('dash-motshelo-preview');
+  if(preview){
+    preview.innerHTML=APP.motshelos.slice(0,2).map(m=>`
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border);">
+        <span style="font-size:22px;">${m.icon}</span>
+        <div style="flex:1;"><div style="font-weight:600;font-size:13px;">${m.name}</div><div style="font-size:11px;color:var(--text2);">${m.members} members · ${fmt(m.contrib)}/mo</div>
+        <div class="prog" style="margin-top:6px;"><div class="prog-fill" style="width:${Math.min(100,Math.round(m.saved/(m.contrib*m.cycle)*100))}%;"></div></div></div>
+        <span style="color:var(--gold);font-family:'Syne';font-weight:700;">${fmt(m.saved)}</span>
+      </div>`).join('')||'<div style="color:var(--text2);font-size:13px;text-align:center;padding:12px;">No Motshelos yet.</div>';
+  }
+}
+
+function copyGroupCode(code){
+  lastInviteCode=code;
+  if(navigator.clipboard){navigator.clipboard.writeText(code).then(()=>toast('Code '+code+' copied ✓'));}
+  else{toast('Code: '+code);}
+}
+
+function showInviteCode(code){
+  lastInviteCode=code;
+  document.getElementById('invite-code-display').textContent=code;
+  openMod('invite-modal');
+}
+
+function renderMostheloStats(){
+  const total=APP.motshelos.reduce((s,m)=>s+m.saved,0);
+  document.getElementById('m-total').textContent=fmt(total);
+  document.getElementById('m-groups').textContent=APP.motshelos.length;
+  document.getElementById('m-next').textContent=APP.motshelos.length?APP.motshelos[0].payoutDate:'—';
+}
+
+function doContrib(i){
+  APP.motshelos[i].saved=parseFloat((APP.motshelos[i].saved+APP.motshelos[i].contrib).toFixed(2));
+  const groups=getSharedGroups();
+  const grp=groups[APP.motshelos[i].code];
+  if(grp){
+    const me=grp.members.find(m=>m.email===APP.user.email||m.name===APP.user.name);
+    if(me) me.saved=(me.saved||0)+APP.motshelos[i].contrib;
+    grp.totalSaved=(grp.totalSaved||0)+APP.motshelos[i].contrib;
+    saveSharedGroups(groups);
+  }
+  const tx={id:Date.now(),desc:'Motshelo — '+APP.motshelos[i].name,amount:APP.motshelos[i].contrib,type:'expense',cat:'Motshelo',date:today()};
+  APP.transactions.unshift(tx);
+  saveApp();
+  renderMotshelos(); renderStats(); renderTxList();
+  toast('P'+APP.motshelos[i].contrib+' contributed to '+APP.motshelos[i].name+' ✓');
+}
+
+function deleteMotshelo(i){
+  const nm=APP.motshelos[i].name;
+  const code=APP.motshelos[i].code;
+  if(APP.motshelos[i].isOwner&&code){
+    const groups=getSharedGroups();
+    delete groups[code];
+    saveSharedGroups(groups);
+  }
+  APP.motshelos.splice(i,1);
+  saveApp();
+  renderMotshelos();
+  toast('"'+nm+'" removed');
+}
+
+/* ══ CARD ══ */
+function renderCardActivity(){
+  const el=document.getElementById('card-activity'); if(!el) return;
+  const recent=APP.transactions.slice(0,4);
+  el.innerHTML=recent.length
+    ? recent.map(t=>{
+        const icon=APP.categories.find(c=>c.name===t.cat)?.icon||(t.type==='income'?'💰':'💳');
+        return `<div class="tx-item"><div class="tx-icon">${icon}</div><div class="tx-info"><div class="tx-nm">${t.desc}</div><div class="tx-meta">${t.date} · ${fmt(t.amount)}</div></div><span class="pill pill-t">✓</span></div>`;
+      }).join('')
+    : '<div style="color:var(--text2);font-size:13px;text-align:center;padding:16px;">No card activity yet.</div>';
+}
+
+let cardFrozen=false;
+function freezeCard(btn){
+  cardFrozen=!cardFrozen;
+  btn.textContent=cardFrozen?'🔓 Unfreeze':'🔒 Freeze';
+  toast(cardFrozen?'Card frozen — all transactions blocked 🔒':'Card active — transactions enabled ✓');
+}
+function saveLimits(){
+  const daily=parseFloat(document.getElementById('dlim-custom')?.value)||0;
+  const single=parseFloat(document.getElementById('tlim-custom')?.value)||0;
+  const atm=parseFloat(document.getElementById('atmlim-custom')?.value)||0;
+  if(daily>0) APP.card.dailyLimit=daily;
+  if(single>0) APP.card.singleLimit=single;
+  if(atm>0) APP.card.atmLimit=atm;
+  const atmRow=document.getElementById('atm-limit-label');
+  if(atmRow&&atm>0) atmRow.textContent='Daily limit: '+fmt(atm);
+  closeMod('limits-modal');
+  saveApp();
+  toast('Spending limits saved ✓');
+}
+
+/* ══ SETTINGS ══ */
+function renderLinkedAccounts(){
+  const el=document.getElementById('linked-accounts-list'); if(!el) return;
+  const methodMap={fnb:'FNB Botswana',orange:'Orange Money',myzaka:'MyZaka',smega:'Smega',stanbic:'Stanbic / Absa',cash:'Cash (manual)'};
+  const subtMap={fnb:'Bank card · ••4521',orange:'Mobile money',myzaka:'Mascom',smega:'BTC mobile money',stanbic:'Bank card',cash:'Log manually'};
+  if(APP.payMethods.length===0){
+    el.innerHTML='<div style="color:var(--text2);font-size:13px;padding:8px 0;">No accounts linked. Update in Settings.</div>';
+    return;
+  }
+  el.innerHTML=APP.payMethods.map(k=>`<div class="s-row"><div><div class="s-lbl">${methodMap[k]||k}</div><div class="s-sub">${subtMap[k]||''}</div></div><span class="pill pill-t">✓ Linked</span></div>`).join('');
+}
+
+function saveProfile(){
+  const n=document.getElementById('set-name').value.trim();
+  const e=document.getElementById('set-email').value.trim();
+  if(!n){toast('Please enter your name');return;}
+  APP.user.name=n; APP.user.email=e;
+  APP.user.initials=n.split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);
+  saveApp();
+  document.getElementById('dash-greet').textContent='Hey, '+n+' 👋';
+  document.getElementById('dash-av').textContent=APP.user.initials;
+  document.getElementById('card-nm').textContent=n;
+  document.getElementById('cp-holder').textContent=n;
+  toast('Profile saved ✓');
+}
+
+function saveIncome(){
+  const inc=parseFloat(document.getElementById('set-income').value)||0;
+  if(inc<=0){toast('Please enter a valid income');return;}
+  APP.user.income=inc;
+  const pd=document.getElementById('set-payday');
+  if(pd){
+    APP.user.payday=pd.value;
+    document.getElementById('dash-sub').textContent=getMonthLabel()+' · '+getDaysLeft()+' days left · Payday: '+APP.user.payday+'th';
+  }
+  saveApp();
+  renderStats();
+  toast('Income & payday updated ✓');
+}
+
+function togBtn(btn,label){btn.classList.toggle('on');toast(label+' '+(btn.classList.contains('on')?'enabled ✓':'disabled'));}
+function confirmDelete(){if(confirm('Delete your account? This cannot be undone.')){toast('Account deletion requested');setTimeout(signOut,1500);}}
+
+/* ══ INIT ══ */
+document.getElementById('tx-date').value=today();
+renderObFeatures();
+renderSavedAccounts();
+(function(){
+  const restored=loadApp();
+  if(restored){
+    if(APP.theme==='dark'){
+      document.documentElement.setAttribute('data-theme','dark');
+      document.querySelectorAll('#dk-tb,#dk-main').forEach(b=>b.textContent='☀️');
+    }
+    initDash();
+    showScreen('dash-screen');
+  }
+})();
+</script>
+</body>
+</html>
